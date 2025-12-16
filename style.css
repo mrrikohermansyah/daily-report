@@ -206,6 +206,21 @@ select {
   font-size: 16px; /* Mencegah zoom di iOS */
   transition: border-color 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
 }
+/* iOS date input overflow fix */
+input[type="date"] {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  overflow: hidden;
+}
+input[type="date"]::-webkit-datetime-edit,
+input[type="date"]::-webkit-clear-button,
+input[type="date"]::-webkit-inner-spin-button {
+  margin: 0;
+  padding: 0;
+}
 
 #inv_code {
   text-transform: uppercase;
