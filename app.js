@@ -84,15 +84,6 @@ if (btnLogin) {
     const email = loginEmail ? loginEmail.value : "";
     const password = loginPassword ? loginPassword.value : "";
     try {
-      const res = await Swal.fire({
-        title: "Konfirmasi Login",
-        text: "Apakah Anda yakin ingin login?",
-        icon: "question",
-        showCancelButton: true,
-        confirmButtonText: "Login",
-        cancelButtonText: "Batal",
-      });
-      if (!res.isConfirmed) return;
       await auth.signInWithEmailAndPassword(email, password);
     } catch (e) {
       updateAuthStatus(e && e.message ? e.message : "Gagal login");
