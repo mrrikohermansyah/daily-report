@@ -1166,7 +1166,7 @@ async function exportExcel() {
         let indent = 0;
         if (i === 0) horiz = "right";
         if (i === 2) horiz = "center";
-        if (i === 4 || i === 7) indent = 1;
+        if (i === 4 || i === 7) indent = 0;
         if (i === 7) {
           horiz = "center";
           vert = "bottom";
