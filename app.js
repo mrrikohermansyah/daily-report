@@ -457,8 +457,8 @@ if (btnSelesai) {
 
 if (form) {
   form.addEventListener("submit", () => {
-    if (labelMulai) labelMulai.textContent = "Haven't Started";
-    if (labelSelesai) labelSelesai.textContent = "Haven't Done";
+    if (labelMulai) labelMulai.textContent = "Not Started";
+    if (labelSelesai) labelSelesai.textContent = "In Progress";
     if (btnMulai) btnMulai.disabled = false;
     if (btnSelesai) btnSelesai.disabled = true;
     stopTimer();
@@ -558,13 +558,13 @@ function renderActivity(d, container) {
     <div class="form-row">
       <div class="form-group">
         <label>Waktu Mulai</label>
-        <div class="time-display" data-role="label_mulai">haven't Started</div>
+        <div class="time-display" data-role="label_mulai">Not Started</div>
         <input type="hidden" name="jam_mulai" />
         <button type="button" class="btn-secondary" data-role="start">Start</button>
       </div>
       <div class="form-group">
         <label>Waktu Selesai</label>
-        <div class="time-display" data-role="label_selesai">Haven't Done</div>
+        <div class="time-display" data-role="label_selesai">In Progress</div>
         <input type="hidden" name="jam_selesai" />
         <button type="button" class="btn-secondary" data-role="finish" disabled>Selesaikan</button>
       </div>
