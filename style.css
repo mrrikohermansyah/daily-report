@@ -561,7 +561,7 @@ button {
     white-space: normal;
     overflow: visible;
     text-overflow: clip;
-    text-align: right;
+    text-align: center;
     word-break: break-word;
     overflow-wrap: anywhere;
     max-width: 100%;
