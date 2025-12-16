@@ -1164,8 +1164,10 @@ async function exportExcel() {
         let horiz = "left";
         let vert = "top";
         let indent = 0;
+        let wrap = false;
         if (i === 0) horiz = "right";
         if (i === 2) horiz = "center";
+        if (i === 4) wrap = true;
         if (i === 4 || i === 7) indent = 0;
         if (i === 7) {
           horiz = "center";
@@ -1175,7 +1177,7 @@ async function exportExcel() {
         cell.alignment = {
           horizontal: horiz,
           vertical: vert,
-          wrapText: false,
+          wrapText: wrap,
           indent,
         };
         cell.border = {
@@ -1185,8 +1187,52 @@ async function exportExcel() {
           right: { style: "hair" },
         };
       }
+      ws2.getRow(rowIndex).height = pxToPt(20);
       rowIndex += 1;
     });
+    const emptyRowsCount = 2;
+    for (let k = 0; k < emptyRowsCount; k++) {
+      for (let i = 0; i < headers.length; i++) {
+        const cell = ws2.getCell(rowIndex, 2 + i);
+        cell.value = "";
+        cell.font = { name: "Arial", size: 10 };
+        cell.alignment = {
+          horizontal: "left",
+          vertical: "top",
+          wrapText: false,
+        };
+        cell.border = {
+          top: { style: "hair" },
+          left: { style: "hair" },
+          bottom: { style: "hair" },
+          right: { style: "hair" },
+        };
+      }
+      rowIndex += 1;
+    }
+    const setBorderSide = (cell, side, style) => {
+      const b = cell.border || {};
+      const merged = {
+        top: b.top,
+        left: b.left,
+        bottom: b.bottom,
+        right: b.right,
+      };
+      merged[side] = { style };
+      cell.border = merged;
+    };
+    const tableFirstRow = headerRowIndex;
+    const tableLastRow = rowIndex - 1;
+    const tableFirstCol = 2;
+    const tableLastCol = 2 + headers.length - 1;
+    for (let c = tableFirstCol; c <= tableLastCol; c++) {
+      setBorderSide(ws2.getCell(tableFirstRow, c), "top", "thick");
+      setBorderSide(ws2.getCell(tableLastRow, c), "bottom", "thick");
+    }
+    for (let r = tableFirstRow; r <= tableLastRow; r++) {
+      setBorderSide(ws2.getCell(r, tableFirstCol), "left", "thick");
+      setBorderSide(ws2.getCell(r, tableLastCol), "right", "thick");
+    }
     ws2.views = [{ state: "frozen", xSplit: 1, ySplit: headerRowIndex }];
     const spacer = ws2.addRow(["", "", "", "", "", "", "", ""]);
     spacer.height = 10;
