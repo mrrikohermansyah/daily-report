@@ -1049,7 +1049,7 @@ async function exportExcel() {
       toDMY(d.tanggal),
       d.inv_code || "",
       Array.isArray(d.kode_pekerjaan) ? d.kode_pekerjaan.join(" & ") : "",
-      d.lokasi || "",
+      "Bintan / " + (d.lokasi || ""),
       d.remarks || "",
       d.pengguna || "",
       dur != null ? formatDuration(dur) : "",
