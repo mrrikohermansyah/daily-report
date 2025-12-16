@@ -193,7 +193,7 @@ auth.onAuthStateChanged((user) => {
   if (currentUser) {
     updateAuthStatus(`Login as ${currentUser.email || currentUser.uid}`);
   } else {
-    updateAuthStatus("Not loged in");
+    updateAuthStatus("");
   }
   setUIAuthState();
   refreshDraftsListener();
