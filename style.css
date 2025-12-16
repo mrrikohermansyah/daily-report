@@ -1,3 +1,6 @@
+/* ============================================
+   ROOT VARIABLES & GLOBAL RESET
+   ============================================ */
 :root {
   --primary: #1877f2;
   --primary-hover: #166fe5;
@@ -9,29 +12,33 @@
   --accent: #0ea5e9;
 }
 
-* {
+/* RESET LENGKAP DENGAN BOX-SIZING */
+*,
+*::before,
+*::after {
   box-sizing: border-box;
+  margin: 0;
+  padding: 0;
 }
 
-html,
-body {
-  height: 100%;
-  overscroll-behavior-x: none;
-  touch-action: pan-y;
-  overflow-x: hidden !important;
-  scrollbar-gutter: stable both-edges;
-}
-
+/* ============================================
+   HTML & BODY - FIX UTAMA
+   ============================================ */
 html {
   width: 100%;
+  max-width: 100vw;
   overflow-x: hidden;
-  overflow-x: clip;
+  -webkit-text-size-adjust: 100%;
+  -ms-text-size-adjust: 100%;
+  text-size-adjust: 100%;
 }
 
 body {
-  max-width: 100vw;
   width: 100%;
+  max-width: 100vw;
+  min-height: 100vh;
   margin: 0;
+  padding: 0;
   font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial,
     sans-serif;
   color: var(--text);
@@ -39,23 +46,36 @@ body {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   overflow-x: hidden;
-  overflow-x: clip;
+  position: relative;
+  touch-action: pan-y;
+  overscroll-behavior-x: none;
+  -webkit-overflow-scrolling: touch;
 }
 
+/* ============================================
+   CONTAINER UTAMA
+   ============================================ */
 .container {
-  max-width: 960px;
   width: 100%;
+  max-width: 100%;
+  min-width: 0;
   margin: 0 auto;
   padding: 20px;
   overflow-x: hidden;
+  position: relative;
 }
 
+/* ============================================
+   TOOLBAR & NAVIGATION
+   ============================================ */
 .topbar {
   display: flex;
   align-items: center;
   justify-content: space-between;
   flex-wrap: wrap;
-  overflow-x: hidden;
+  width: 100%;
+  max-width: 100%;
+  overflow: hidden;
   gap: 10px;
   padding: 14px 18px;
   border: 1px solid var(--border);
@@ -68,65 +88,90 @@ body {
   display: flex;
   align-items: center;
   gap: 10px;
+  flex-wrap: wrap;
+  min-width: 0;
 }
 
 .brand {
   display: flex;
   align-items: baseline;
   gap: 12px;
+  flex-wrap: wrap;
+  min-width: 0;
 }
 
 .brand h1 {
   margin: 0;
   font-size: 20px;
   letter-spacing: 0.2px;
+  overflow-wrap: break-word;
+  word-break: break-word;
 }
 
 .brand .subtitle {
   margin: 0;
   color: var(--muted);
   font-size: 13px;
+  overflow-wrap: break-word;
 }
 
 .user-status {
   color: var(--muted);
   font-size: 14px;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  max-width: 60vw;
+  white-space: normal;
+  overflow: visible;
+  text-overflow: clip;
+  word-break: break-word;
+  overflow-wrap: anywhere;
+  text-align: right;
+  max-width: 100%;
+  min-width: 0;
 }
 
+/* ============================================
+   CONTENT AREA
+   ============================================ */
 .page-header h1 {
   margin: 0;
   font-size: 28px;
+  overflow-wrap: break-word;
+  word-break: break-word;
 }
 
 .page-header .subtitle {
   margin-top: 6px;
   color: var(--muted);
+  overflow-wrap: break-word;
 }
 
 .content {
   margin-top: 20px;
   width: 100%;
+  max-width: 100%;
   display: block;
-}
-.content,
-.section-grid {
+  min-width: 0;
   overflow-x: hidden;
 }
-.section-grid {
-  width: 100%;
+
+.content.section-grid,
+main.content,
+#activities,
+#history_activities {
+  max-width: 100%;
+  overflow-x: hidden;
 }
 
+/* ============================================
+   CARDS & COMPONENTS
+   ============================================ */
 .card {
   background: var(--surface);
   border: 1px solid var(--border);
   border-radius: 16px;
   padding: 20px;
+  width: 100%;
   max-width: 100%;
-  overflow-x: hidden;
+  overflow: hidden;
   box-shadow: 0 10px 30px rgba(15, 23, 42, 0.06);
   margin-bottom: 20px;
 }
@@ -135,23 +180,30 @@ body {
   margin: 0 0 16px 0;
   font-size: 18px;
   letter-spacing: 0.2px;
+  overflow-wrap: break-word;
 }
 
+/* ============================================
+   FORM ELEMENTS
+   ============================================ */
 .form-group label {
   display: block;
   font-weight: 600;
   margin-bottom: 6px;
+  overflow-wrap: break-word;
 }
 
 input,
 textarea,
 select {
   width: 100%;
+  max-width: 100%;
   padding: 10px 12px;
   border: 1px solid var(--border);
   border-radius: 10px;
   outline: none;
   background: var(--surface);
+  font-size: 16px; /* Mencegah zoom di iOS */
   transition: border-color 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
 }
 
@@ -162,6 +214,7 @@ select {
 textarea {
   min-height: 100px;
   resize: vertical;
+  max-width: 100%;
 }
 
 input:focus,
@@ -175,21 +228,20 @@ select:focus {
   display: flex;
   flex-wrap: wrap;
   gap: 10px 12px;
+  max-width: 100%;
 }
 
+/* ============================================
+   LAYOUT GRIDS
+   ============================================ */
 .form-row {
   display: grid;
   grid-template-columns: 1fr;
   gap: 16px;
+  max-width: 100%;
 }
 .form-row > * {
   min-width: 0;
-}
-
-@media (min-width: 640px) {
-  .form-row {
-    grid-template-columns: repeat(2, 1fr);
-  }
 }
 
 .section-grid {
@@ -197,35 +249,25 @@ select:focus {
   grid-template-columns: minmax(0, 1fr);
   gap: 20px;
   align-items: start;
-  overflow-x: hidden;
+  width: 100%;
+  max-width: 100%;
+  overflow: hidden;
 }
 .section-grid > * {
   min-width: 0;
+  max-width: 100%;
 }
 
-@media (min-width: 920px) {
-  .section-grid {
-    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-  }
-}
-
-#card_input,
-#card_active {
-  align-self: stretch;
-}
-
+/* ============================================
+   LOGIN PAGE
+   ============================================ */
 .login-grid {
   display: grid;
   grid-template-columns: 1fr;
   align-items: center;
   gap: 24px;
   min-height: calc(100vh - 120px);
-}
-
-@media (min-width: 920px) {
-  .login-grid {
-    grid-template-columns: 1.2fr 1fr;
-  }
+  max-width: 100%;
 }
 
 .brand-fb h1 {
@@ -234,12 +276,15 @@ select:focus {
   line-height: 1.1;
   margin: 0;
   letter-spacing: -0.5px;
+  overflow-wrap: break-word;
+  word-break: break-word;
 }
 
 .brand-fb .tagline {
   font-size: 24px;
   color: var(--text);
   margin-top: 8px;
+  overflow-wrap: break-word;
 }
 
 .login-card {
@@ -248,44 +293,34 @@ select:focus {
   border-radius: 12px;
   box-shadow: 0 10px 30px rgba(15, 23, 42, 0.08);
   padding: 20px;
+  max-width: 100%;
 }
 
-.link-reset {
-  display: inline-block;
-  color: var(--primary);
-  text-decoration: none;
-  margin-top: 10px;
-}
-
-.link-reset:hover {
-  text-decoration: underline;
-}
-
-.btn-success {
-  background: #42b72a;
-  color: #fff;
-}
-
-.btn-success:hover {
-  background: #36a420;
-}
-
+/* ============================================
+   BUTTONS & ACTIONS
+   ============================================ */
 .actions {
   margin-top: 12px;
   display: flex;
   justify-content: flex-end;
   gap: 10px;
+  flex-wrap: wrap;
+  max-width: 100%;
 }
 
 button {
   width: 100%;
+  max-width: 100%;
   padding: 12px 16px;
   border: none;
   border-radius: 10px;
   font-weight: 600;
   cursor: pointer;
+  font-size: 16px;
   transition: background-color 0.2s ease, transform 0.06s ease,
     box-shadow 0.2s ease;
+  -webkit-appearance: none;
+  appearance: none;
 }
 
 .btn-primary {
@@ -298,27 +333,16 @@ button {
   background: var(--primary-hover);
 }
 
-.btn-secondary {
-  background: #334155;
-  color: #fff;
-}
-
-.btn-secondary:hover {
-  background: #1f2937;
-}
-
-.actions .btn-primary {
-  width: auto;
-}
-
-.actions button {
-  width: auto;
-}
-
+.actions .btn-primary,
+.actions button,
 .topbar button {
   width: auto;
+  min-width: min-content;
 }
 
+/* ============================================
+   ACTIVITY COMPONENTS
+   ============================================ */
 .time-display {
   padding: 10px 12px;
   border: 1px dashed var(--border);
@@ -326,6 +350,8 @@ button {
   background: var(--surface-2);
   color: var(--text);
   margin-bottom: 8px;
+  max-width: 100%;
+  overflow-wrap: break-word;
 }
 
 .timer {
@@ -337,6 +363,8 @@ button {
   font-weight: 600;
   letter-spacing: 0.02em;
   color: #0f172a;
+  max-width: 100%;
+  overflow: hidden;
 }
 
 .muted {
@@ -351,6 +379,7 @@ button {
   background: #eef2ff;
   box-shadow: 0 6px 20px rgba(15, 23, 42, 0.06);
   margin-bottom: 12px;
+  max-width: 100%;
 }
 
 .activity-summary .summary-row {
@@ -358,42 +387,53 @@ button {
   grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
   align-items: center;
   gap: 12px;
-}
-.activity-summary .summary-row > * {
-  min-width: 0;
+  max-width: 100%;
 }
 
 .activity-summary .summary-main {
   display: flex;
   flex-direction: column;
   gap: 2px;
+  min-width: 0;
+}
+
+.summary-id {
+  font-size: 0.9rem;
+  color: var(--muted);
 }
 
 .activity-summary .summary-title {
   font-weight: 700;
   letter-spacing: 0.2px;
+  overflow-wrap: break-word;
+  word-break: break-word;
 }
 
 .activity-summary .summary-sub {
   color: var(--muted);
   font-size: 0.95rem;
+  overflow-wrap: break-word;
 }
 
 .activity-summary .summary-meta {
   text-align: right;
   color: var(--muted);
   font-size: 0.92rem;
+  overflow-wrap: break-word;
 }
 
 .activity-summary .summary-id {
   font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
-  color: #0f172a;
+  color: var(--muted);
   font-size: 0.9rem;
+  overflow-wrap: break-word;
+  word-break: break-all;
 }
 
 .activity-summary .summary-times {
   margin-top: 6px;
   font-size: 0.95rem;
+  overflow-wrap: break-word;
 }
 
 .activity-summary .summary-duration {
@@ -402,43 +442,38 @@ button {
   border-radius: 8px;
   font-weight: 700;
   border: 1px solid;
+  display: inline-block;
 }
 
-.activity-summary .summary-duration.low {
-  background: #ecfdf5;
-  border-color: #6ee7b7;
-  color: #065f46;
+.activity-item {
+  border: 1px dashed var(--border);
+  border-radius: 14px;
+  padding: 16px;
+  margin-top: 12px;
+  width: 100%;
+  max-width: 100%;
+  overflow: hidden;
+  background: var(--surface);
+  box-shadow: 0 6px 20px rgba(15, 23, 42, 0.04);
 }
 
-.activity-summary .summary-duration.mid {
-  background: #fff7ed;
-  border-color: #fdba74;
-  color: #78350f;
+.activity-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 10px;
+  flex-wrap: wrap;
+  max-width: 100%;
 }
 
-.activity-summary .summary-duration.high {
-  background: #fee2e2;
-  border-color: #fca5a5;
-  color: #7f1d1d;
-}
-.activity-summary .summary-remarks {
-  margin-top: 6px;
-}
-
-.activity-summary .summary-id {
-  margin-top: 6px;
-}
-
-.activity-summary .summary-id {
-  font-size: 0.7rem;
-  color: var(--muted);
-}
-
+/* ============================================
+   CHIPS & SPECIAL ELEMENTS
+   ============================================ */
 .chip {
   display: inline-flex;
   align-items: center;
   gap: 8px;
   user-select: none;
+  max-width: 100%;
 }
 
 .chip input {
@@ -456,115 +491,301 @@ button {
   color: var(--text);
   transition: background 0.2s ease, color 0.2s ease, border-color 0.2s ease,
     box-shadow 0.2s ease;
-}
-
-.chip:hover span {
-  border-color: var(--primary);
-}
-
-.chip input:focus + span {
-  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.18);
-}
-
-.chip input:checked + span {
-  background: var(--surface-2);
-  color: var(--primary);
-  border-color: var(--primary);
-  box-shadow: 0 6px 14px rgba(37, 99, 235, 0.18);
-}
-
-.activity-item {
-  border: 1px dashed var(--border);
-  border-radius: 14px;
-  padding: 16px;
-  margin-top: 12px;
+  overflow-wrap: break-word;
+  word-break: break-word;
   max-width: 100%;
-  overflow-x: hidden;
-  background: var(--surface);
-  box-shadow: 0 6px 20px rgba(15, 23, 42, 0.04);
 }
 
-.activity-actions {
-  display: flex;
-  gap: 10px;
-  margin-top: 10px;
+/* ============================================
+   MEDIA QUERIES - MOBILE FIRST
+   ============================================ */
+
+/* Tablet & Desktop */
+@media (min-width: 640px) {
+  .form-row {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .user-status {
+    max-width: 300px;
+  }
 }
 
+@media (min-width: 920px) {
+  .container {
+    max-width: 960px;
+  }
+
+  .section-grid {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  }
+
+  .login-grid {
+    grid-template-columns: 1.2fr 1fr;
+  }
+}
+
+/* MOBILE SPECIFIC FIXES */
 @media (max-width: 480px) {
+  /* Safe area untuk notch devices */
   .container {
     padding: 16px;
-    max-width: 100%;
+    padding-left: max(16px, env(safe-area-inset-left));
+    padding-right: max(16px, env(safe-area-inset-right));
+    max-width: 100vw;
   }
+
+  /* Topbar mobile fixes */
   .topbar {
     gap: 8px;
     padding: 12px 14px;
+    flex-direction: column;
+    align-items: stretch;
   }
-  .actions {
-    gap: 12px;
+
+  .brand {
+    justify-content: center;
+    text-align: center;
   }
+
   .brand h1 {
     font-size: 18px;
   }
+
   .brand .subtitle {
     font-size: 12px;
   }
+
+  /* User status - force wrap */
   .user-status {
+    white-space: normal;
+    overflow: visible;
+    text-overflow: clip;
+    text-align: right;
+    word-break: break-word;
+    overflow-wrap: anywhere;
     max-width: 100%;
   }
-  .card {
-    padding: 16px;
-  }
-  .card-title {
-    font-size: 16px;
-  }
+
+  /* User actions stack vertical */
   .user-actions {
     flex-direction: column;
     align-items: stretch;
     width: 100%;
+    gap: 8px;
   }
-  .user-actions .btn-secondary {
+
+  .user-actions button {
     width: 100%;
   }
-  .actions {
-    flex-direction: column;
-    align-items: stretch;
+
+  /* Card adjustments */
+  .card {
+    padding: 16px;
+    border-radius: 12px;
   }
-  .actions button {
-    width: 100%;
+
+  .card-title {
+    font-size: 16px;
   }
-  .form-group button {
-    width: 100%;
-  }
+
+  /* Button fixes */
   button {
     font-size: 16px;
     padding: 14px 18px;
+    min-height: 44px; /* Touch target size */
+    width: 100%;
   }
+
   .btn-primary,
   .btn-secondary,
   .btn-success {
     min-height: 44px;
   }
-  .user-status {
-    white-space: normal;
-    overflow: visible;
-    text-overflow: clip;
+
+  /* Actions stack vertical */
+  .actions {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
   }
+
+  .actions button {
+    width: 100%;
+  }
+
+  /* Login page mobile */
   .brand-fb h1 {
     font-size: 32px;
+    text-align: center;
   }
+
   .brand-fb .tagline {
     font-size: 16px;
+    text-align: center;
   }
-  .activity-summary .summary-meta,
-  .activity-summary .summary-remarks,
-  .activity-summary .summary-title {
-    word-break: break-word;
-    overflow-wrap: anywhere;
+  .login-grid {
+    gap: 12px;
+    align-items: start;
+    min-height: auto;
   }
+  .login-card {
+    padding: 16px;
+  }
+
+  /* Activity summary fixes */
   .activity-summary .summary-row {
     grid-template-columns: 1fr;
+    gap: 8px;
   }
+
   .activity-summary .summary-meta {
     text-align: left;
+  }
+
+  .activity-summary .summary-meta,
+  .activity-summary .summary-remarks,
+  .activity-summary .summary-title,
+  .activity-summary .summary-id {
+    word-break: break-word;
+    overflow-wrap: anywhere;
+    max-width: 100%;
+  }
+
+  /* Force all text to wrap */
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6,
+  p,
+  span,
+  div,
+  label,
+  input,
+  textarea,
+  select {
+    overflow-wrap: break-word !important;
+    word-break: break-word !important;
+    max-width: 100% !important;
+  }
+
+  /* Prevent horizontal scroll on tables if any */
+  table {
+    display: block;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+}
+
+/* Small mobile devices */
+@media (max-width: 360px) {
+  .container {
+    padding: 12px;
+    padding-left: max(12px, env(safe-area-inset-left));
+    padding-right: max(12px, env(safe-area-inset-right));
+  }
+
+  .topbar {
+    padding: 10px 12px;
+  }
+
+  .brand h1 {
+    font-size: 16px;
+  }
+
+  button {
+    padding: 12px 14px;
+    font-size: 15px;
+  }
+}
+
+/* Landscape mode fixes */
+@media (max-height: 480px) and (orientation: landscape) {
+  .container {
+    padding: 12px;
+  }
+
+  .topbar {
+    padding: 10px 12px;
+  }
+
+  button {
+    min-height: 40px;
+    padding: 10px 12px;
+  }
+}
+
+/* ============================================
+   UTILITY CLASSES & OVERRIDES
+   ============================================ */
+.link-reset {
+  display: inline-block;
+  color: var(--primary);
+  text-decoration: none;
+  margin-top: 10px;
+  overflow-wrap: break-word;
+}
+
+.link-reset:hover {
+  text-decoration: underline;
+}
+
+.btn-success {
+  background: #42b72a;
+  color: #fff;
+}
+
+.btn-success:hover {
+  background: #36a420;
+}
+
+.btn-secondary {
+  background: #334155;
+  color: #fff;
+}
+
+.btn-secondary:hover {
+  background: #1f2937;
+}
+
+/* Override untuk semua child elements */
+#card_input,
+#card_active,
+.section-grid > *,
+.form-row > *,
+.activity-summary > * {
+  max-width: 100%;
+  min-width: 0;
+}
+
+/* IMAGES & MEDIA FIXES */
+img,
+video,
+iframe,
+canvas,
+svg {
+  max-width: 100%;
+  height: auto;
+  display: block;
+}
+
+/* Prevent textarea resize overflow */
+textarea {
+  max-width: 100%;
+}
+
+/* Untuk debugging (opsional) */
+.debug-overflow {
+  outline: 2px solid red !important;
+}
+
+/* Print styles */
+@media print {
+  html,
+  body {
+    overflow: visible !important;
+    max-width: none !important;
   }
 }
