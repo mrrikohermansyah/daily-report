@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="id">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Login - Daily Report</title>
+    <link rel="icon" href="data:," />
+    <link rel="stylesheet" href="style.css" />
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  </head>
+
+  <body>
+    <div class="container">
+      <main class="content login-grid">
+        <section class="brand-fb">
+          <h1>DailyReport</h1>
+          <div class="tagline">Terhubung dan catat aktivitas dengan mudah.</div>
+        </section>
+        <section class="login-card">
+          <form class="form" id="loginForm" onsubmit="return false;">
+            <div class="form-group">
+              <label for="loginEmail">Email</label>
+              <input type="email" id="loginEmail" />
+            </div>
+            <div class="form-group">
+              <label for="loginPassword">Password</label>
+              <input type="password" id="loginPassword" />
+            </div>
+            <div class="actions" style="justify-content: flex-start">
+              <button type="button" class="btn-primary" id="btn_login">
+                Masuk
+              </button>
+              <button type="button" class="btn-secondary" id="btn_login_google">
+                Masuk dengan Google
+              </button>
+            </div>
+            <a href="#" class="link-reset" id="btn_reset">Lupa kata sandi?</a>
+            <div class="actions" style="justify-content: flex-start">
+              <button type="button" class="btn-success" id="btn_signup">
+                Buat Akun Baru
+              </button>
+            </div>
+            <div class="muted" id="auth_status"></div>
+          </form>
+        </section>
+      </main>
+    </div>
+
+    <script src="app.js"></script>
+    <script>
+      // Redirect ke index setelah login diproses oleh app.js
+      // app.js sudah punya onAuthStateChanged; kita hanya pastikan link logout tidak tampil di halaman login
+    </script>
+  </body>
+</html>
