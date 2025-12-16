@@ -16,9 +16,20 @@
 html,
 body {
   height: 100%;
+  overscroll-behavior-x: none;
+  touch-action: pan-y;
+  overflow-x: hidden !important;
+}
+
+html {
+  width: 100%;
+  overflow-x: hidden;
+  overflow-x: clip;
 }
 
 body {
+  max-width: 100vw;
+  width: 100%;
   margin: 0;
   font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial,
     sans-serif;
@@ -27,12 +38,15 @@ body {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   overflow-x: hidden;
+  overflow-x: clip;
 }
 
 .container {
-  max-width: 1100px;
+  max-width: 100%;
+  width: 100%;
   margin: 0 auto;
   padding: 24px;
+  overflow-x: hidden;
 }
 
 .topbar {
@@ -40,12 +54,19 @@ body {
   align-items: center;
   justify-content: space-between;
   flex-wrap: wrap;
+  overflow-x: hidden;
   gap: 10px;
   padding: 14px 18px;
   border: 1px solid var(--border);
   border-radius: 14px;
   background: var(--surface);
   box-shadow: 0 8px 24px rgba(15, 23, 42, 0.06);
+}
+
+.user-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
 }
 
 .brand {
@@ -87,6 +108,15 @@ body {
 
 .content {
   margin-top: 20px;
+  width: 100%;
+  display: block;
+}
+.content,
+.section-grid {
+  overflow-x: hidden;
+}
+.section-grid {
+  width: 100%;
 }
 
 .card {
@@ -94,6 +124,8 @@ body {
   border: 1px solid var(--border);
   border-radius: 16px;
   padding: 20px;
+  max-width: 100%;
+  overflow-x: hidden;
   box-shadow: 0 10px 30px rgba(15, 23, 42, 0.06);
   margin-bottom: 20px;
 }
@@ -149,6 +181,9 @@ select:focus {
   grid-template-columns: 1fr;
   gap: 16px;
 }
+.form-row > * {
+  min-width: 0;
+}
 
 @media (min-width: 640px) {
   .form-row {
@@ -161,6 +196,10 @@ select:focus {
   grid-template-columns: 1fr;
   gap: 20px;
   align-items: start;
+  overflow-x: hidden;
+}
+.section-grid > * {
+  min-width: 0;
 }
 
 @media (min-width: 920px) {
@@ -315,9 +354,12 @@ button {
 
 .activity-summary .summary-row {
   display: grid;
-  grid-template-columns: 1fr auto;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
   align-items: center;
   gap: 12px;
+}
+.activity-summary .summary-row > * {
+  min-width: 0;
 }
 
 .activity-summary .summary-main {
@@ -435,6 +477,8 @@ button {
   border-radius: 14px;
   padding: 16px;
   margin-top: 12px;
+  max-width: 100%;
+  overflow-x: hidden;
   background: var(--surface);
   box-shadow: 0 6px 20px rgba(15, 23, 42, 0.04);
 }
@@ -448,10 +492,14 @@ button {
 @media (max-width: 480px) {
   .container {
     padding: 16px;
+    max-width: 100%;
   }
   .topbar {
     gap: 8px;
     padding: 12px 14px;
+  }
+  .actions {
+    gap: 12px;
   }
   .brand h1 {
     font-size: 18px;
@@ -468,6 +516,14 @@ button {
   .card-title {
     font-size: 16px;
   }
+  .user-actions {
+    flex-direction: column;
+    align-items: stretch;
+    width: 100%;
+  }
+  .user-actions .btn-secondary {
+    width: 100%;
+  }
   .actions {
     flex-direction: column;
     align-items: stretch;
@@ -475,10 +531,39 @@ button {
   .actions button {
     width: 100%;
   }
+  .form-group button {
+    width: 100%;
+  }
+  button {
+    font-size: 16px;
+    padding: 14px 18px;
+  }
+  .btn-primary,
+  .btn-secondary,
+  .btn-success {
+    min-height: 44px;
+  }
+  .user-status {
+    white-space: normal;
+    overflow: visible;
+    text-overflow: clip;
+  }
   .brand-fb h1 {
     font-size: 32px;
   }
   .brand-fb .tagline {
     font-size: 16px;
+  }
+  .activity-summary .summary-meta,
+  .activity-summary .summary-remarks,
+  .activity-summary .summary-title {
+    word-break: break-word;
+    overflow-wrap: anywhere;
+  }
+  .activity-summary .summary-row {
+    grid-template-columns: 1fr;
+  }
+  .activity-summary .summary-meta {
+    text-align: left;
   }
 }
