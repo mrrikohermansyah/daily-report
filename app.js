@@ -1377,54 +1377,39 @@ async function exportExcel() {
       fitToWidth: 1,
       fitToHeight: 0,
     };
-    ws2.mergeCells("A1:D3");
-    ws2.getCell("A1").value = "PT MANDIRI ELANG INDAH";
-    ws2.getCell("A1").font = {
+    ws2.mergeCells("B1:D3");
+    ws2.getCell("B1").value = "PT MEINDO ELANG INDAH";
+    ws2.getCell("B1").font = {
       bold: true,
       size: 14,
-      color: { argb: "FFFFFFFF" },
+      color: { argb: "FF000000" },
     };
-    ws2.getCell("A1").alignment = { vertical: "middle", horizontal: "left" };
-    ws2.getCell("A1").fill = {
-      type: "pattern",
-      pattern: "solid",
-      fgColor: { argb: "FF000000" },
-    };
-    ws2.mergeCells("E1:H3");
+    ws2.getCell("B1").alignment = { vertical: "middle", horizontal: "left" };
+
+    ws2.mergeCells("E1:I3");
     ws2.getCell("E1").value =
       "No. Form: PAT-SIT-801-PO1\nRev.00 Tanggal: 28-01-2019";
     ws2.getCell("E1").font = {
       bold: true,
       size: 10,
-      color: { argb: "FFFFFFFF" },
+      color: { argb: "FF000000" },
     };
     ws2.getCell("E1").alignment = {
       vertical: "middle",
       horizontal: "right",
       wrapText: true,
     };
-    ws2.getCell("E1").fill = {
-      type: "pattern",
-      pattern: "solid",
-      fgColor: { argb: "FF000000" },
-    };
-    ws2.mergeCells("A4:H4");
-    ws2.getCell("A4").value = "AKTIVITAS-AKTIVITAS IT / IT ACTIVITIES";
-    ws2.getCell("A4").font = {
+    ws2.mergeCells("B4:I4");
+    ws2.getCell("B4").value = "AKTIVITAS-AKTIVITAS IT / IT ACTIVITIES";
+    ws2.getCell("B4").font = {
       bold: true,
       size: 12,
-      color: { argb: "FFFFFFFF" },
+      color: { argb: "FF000000" },
     };
-    ws2.getCell("A4").alignment = { vertical: "middle", horizontal: "center" };
-    ws2.getCell("A4").fill = {
-      type: "pattern",
-      pattern: "solid",
-      fgColor: { argb: "FF000000" },
-    };
-    ws2.mergeCells("A6:D6");
-    ws2.getCell("A6").value = `Nama / Name : ${
-      currentUser.displayName || currentUser.email || ""
-    }`;
+    ws2.getCell("B4").alignment = { vertical: "middle", horizontal: "center" };
+
+    ws2.mergeCells("B6:D6");
+    ws2.getCell("B6").value = `Nama / Name : Riko Hermansyah`;
     ws2.getCell("A6").font = { bold: true, size: 10 };
     ws2.getCell("A6").alignment = { vertical: "middle", horizontal: "left" };
     ws2.mergeCells("E6:H6");
@@ -1545,32 +1530,32 @@ async function exportExcel() {
       setBorderSide(ws2.getCell(r, tableFirstCol), "left", "thick");
       setBorderSide(ws2.getCell(r, tableLastCol), "right", "thick");
     }
-    ws2.views = [{ state: "frozen", xSplit: 1, ySplit: headerRowIndex }];
-    const spacer = ws2.addRow(["", "", "", "", "", "", "", ""]);
-    spacer.height = 10;
-    ws2.mergeCells(`A${spacer.number + 1}:D${spacer.number + 3}`);
-    ws2.getCell(`A${spacer.number + 1}`).value = "Supervisor / Manager";
-    ws2.getCell(`A${spacer.number + 1}`).alignment = {
-      horizontal: "center",
-      vertical: "middle",
-    };
-    ws2.mergeCells(`E${spacer.number + 1}:H${spacer.number + 3}`);
-    ws2.getCell(`E${spacer.number + 1}`).value = "Prepared By";
-    ws2.getCell(`E${spacer.number + 1}`).alignment = {
-      horizontal: "center",
-      vertical: "middle",
-    };
-    [
-      ws2.getCell(`A${spacer.number + 1}`),
-      ws2.getCell(`E${spacer.number + 1}`),
-    ].forEach((cell) => {
-      cell.border = {
-        top: { style: "thin" },
-        left: { style: "thin" },
-        bottom: { style: "thin" },
-        right: { style: "thin" },
-      };
-    });
+    // ws2.views = [{ state: "frozen", xSplit: 1, ySplit: headerRowIndex }];
+    // const spacer = ws2.addRow(["", "", "", "", "", "", "", "", ""]);
+    // spacer.height = 10;
+    // ws2.mergeCells(`B${spacer.number + 1}:D${spacer.number + 3}`);
+    // ws2.getCell(`B${spacer.number + 1}`).value = "Supervisor / Manager";
+    // ws2.getCell(`B${spacer.number + 1}`).alignment = {
+    //   horizontal: "center",
+    //   vertical: "middle",
+    // };
+    // ws2.mergeCells(`E${spacer.number + 1}:I${spacer.number + 3}`);
+    // ws2.getCell(`E${spacer.number + 1}`).value = "Prepared By";
+    // ws2.getCell(`E${spacer.number + 1}`).alignment = {
+    //   horizontal: "center",
+    //   vertical: "middle",
+    // };
+    // [
+    //   ws2.getCell(`B${spacer.number + 1}`),
+    //   ws2.getCell(`E${spacer.number + 1}`),
+    // ].forEach((cell) => {
+    //   cell.border = {
+    //     top: { style: "thin" },
+    //     left: { style: "thin" },
+    //     bottom: { style: "thin" },
+    //     right: { style: "thin" },
+    //   };
+    // });
     const buf = await wb2.xlsx.writeBuffer();
     const blob = new Blob([buf], {
       type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
@@ -1601,6 +1586,6 @@ async function exportExcel() {
     { wch: 18 },
   ];
   const wb = XLSX.utils.book_new();
-  XLSX.utils.book_append_sheet(wb, ws, `Daily Report ${tgl}`);
+  XLSX.utils.book_append_sheet(wb, ws, `${tgl}`);
   XLSX.writeFile(wb, "Daily_Report_Riko.xlsx");
 }
