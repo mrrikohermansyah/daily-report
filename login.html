@@ -56,12 +56,22 @@
       </main>
     </div>
 
-    <div class="version-label">v0.2.02</div>
-
     <script src="app.js"></script>
     <script>
       // Redirect ke index setelah login diproses oleh app.js
       // app.js sudah punya onAuthStateChanged; kita hanya pastikan link logout tidak tampil di halaman login
+    </script>
+    <script>
+      (function () {
+        try {
+          fetch("version.html")
+            .then((r) => r.text())
+            .then((html) => {
+              document.body.insertAdjacentHTML("beforeend", html);
+            })
+            .catch(() => {});
+        } catch {}
+      })();
     </script>
   </body>
 </html>
