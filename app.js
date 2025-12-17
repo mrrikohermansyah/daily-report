@@ -1236,15 +1236,25 @@ if (reportFormEl)
         uid: currentUser.uid,
         user_email: currentUser.email || "",
       });
-      alert("Aktivitas ditambahkan ke daftar Aktif");
+      Swal.fire({
+        icon: "success",
+        title: "Aktivitas Ditambahkan",
+        text: "Aktivitas baru telah ditambahkan ke daftar Aktif",
+        timer: 1500,
+        showConfirmButton: false,
+      });
       e.target.reset();
+
+      // Preserve checkbox state reset explicitly if needed, though reset() usually handles it
     } catch (err) {
-      alert(
-        err && err.code === "permission-denied"
-          ? "Akses ditolak oleh Firestore Rules saat menambahkan aktivitas."
-          : "Gagal menambahkan aktivitas: " +
-              (err && err.message ? err.message : "Unknown error")
-      );
+      Swal.fire({
+        icon: "error",
+        title: "Gagal Menambahkan",
+        text:
+          err && err.message
+            ? err.message
+            : "Terjadi kesalahan saat menambahkan aktivitas",
+      });
     }
   });
 
