@@ -12,7 +12,46 @@ const firebaseConfig = {
 firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore();
 const auth = firebase.auth();
+
+// Set Auth Persistence to SESSION (logout on tab close)
+auth.setPersistence(firebase.auth.Auth.Persistence.SESSION).catch((error) => {
+  console.error("Auth Persistence Error:", error);
+});
+
 let currentUser = null;
+
+// =========================
+// AUTO LOGOUT (IDLE TIMEOUT)
+// =========================
+const IDLE_TIMEOUT_MS = 30 * 60 * 1000; // 30 minutes
+let idleTimer;
+
+function resetIdleTimer() {
+  clearTimeout(idleTimer);
+  if (currentUser) {
+    idleTimer = setTimeout(() => {
+      handleIdleTimeout();
+    }, IDLE_TIMEOUT_MS);
+  }
+}
+
+function handleIdleTimeout() {
+  if (currentUser) {
+    auth.signOut().then(() => {
+      Swal.fire({
+        icon: "warning",
+        title: "Sesi Berakhir",
+        text: "Anda telah logout otomatis karena tidak ada aktivitas selama 30 menit.",
+        confirmButtonText: "OK",
+      });
+    });
+  }
+}
+
+// Attach idle listeners
+["mousemove", "keydown", "click", "scroll", "touchstart"].forEach((evt) => {
+  document.addEventListener(evt, resetIdleTimer, { passive: true });
+});
 
 // =========================
 // HELPER
@@ -191,8 +230,10 @@ auth.onAuthStateChanged((user) => {
   currentUser = user || null;
   if (currentUser) {
     updateAuthStatus(`Login as ${currentUser.email || currentUser.uid}`);
+    resetIdleTimer(); // Start idle timer on login
   } else {
     updateAuthStatus("");
+    clearTimeout(idleTimer); // Clear timer on logout
   }
   setUIAuthState();
   refreshDraftsListener();
