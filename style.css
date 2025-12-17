@@ -493,6 +493,7 @@ button {
   gap: 8px;
   user-select: none;
   max-width: 100%;
+  cursor: pointer;
 }
 
 .chip input {
@@ -513,6 +514,18 @@ button {
   overflow-wrap: break-word;
   word-break: break-word;
   max-width: 100%;
+}
+
+.chip input:checked + span {
+  background: var(--primary);
+  color: #fff;
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.18);
+}
+
+.chip input:disabled + span {
+  opacity: 0.6;
+  cursor: not-allowed;
 }
 
 /* ============================================
