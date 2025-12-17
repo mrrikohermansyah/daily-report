@@ -706,11 +706,11 @@ function updateActivityElement(el, d) {
   }
 
   const labelMulai = el.querySelector('[data-role="label_mulai"]');
-  const labelSelesai = el.querySelector('[data-role="label_selesai"]');
   const inputMulai = el.querySelector('input[name="jam_mulai"]');
   const inputSelesai = el.querySelector('input[name="jam_selesai"]');
   const btnStart = el.querySelector('[data-role="start"]');
   const btnFinish = el.querySelector('[data-role="finish"]');
+  const btnSaveManual = el.querySelector('[data-role="save_manual"]');
 
   if (d.jam_mulai) {
     if (inputMulai && document.activeElement !== inputMulai)
@@ -720,7 +720,15 @@ function updateActivityElement(el, d) {
   if (d.jam_selesai) {
     if (inputSelesai && document.activeElement !== inputSelesai)
       inputSelesai.value = d.jam_selesai;
-    if (labelSelesai) labelSelesai.textContent = d.jam_selesai;
+
+    // Toggle buttons based on jam_selesai existence
+    if (inputSelesai && inputSelesai.value) {
+      if (btnFinish) btnFinish.style.display = "none";
+      if (btnSaveManual) btnSaveManual.style.display = "inline-block";
+    } else {
+      if (btnFinish) btnFinish.style.display = "inline-block";
+      if (btnSaveManual) btnSaveManual.style.display = "none";
+    }
   }
 
   if (d.started) {
@@ -740,6 +748,7 @@ function updateActivityElement(el, d) {
   if (d.finished) {
     if (btnStart) btnStart.disabled = true;
     if (btnFinish) btnFinish.disabled = true;
+    if (btnSaveManual) btnSaveManual.style.display = "none";
   }
 
   // Timer logic
@@ -813,9 +822,9 @@ function renderActivity(d, container) {
       </div>
       <div class="form-group">
         <label>Waktu Selesai</label>
-        <div class="time-display" data-role="label_selesai">In Progress</div>
-        <input type="hidden" name="jam_selesai" />
+        <input type="time" name="jam_selesai" class="form-control" style="width: 100%; padding: 8px; margin-bottom: 8px;" />
         <button type="button" class="btn-secondary" data-role="finish" disabled>Selesaikan</button>
+        <button type="button" class="btn-success" data-role="save_manual" style="display:none;">Simpan</button>
       </div>
     </div>
     <div class="form-group">
@@ -848,18 +857,27 @@ function renderActivity(d, container) {
     });
   }
   const labelMulai = el.querySelector('[data-role="label_mulai"]');
-  const labelSelesai = el.querySelector('[data-role="label_selesai"]');
   const inputMulai = el.querySelector('input[name="jam_mulai"]');
   const inputSelesai = el.querySelector('input[name="jam_selesai"]');
   const btnStart = el.querySelector('[data-role="start"]');
   const btnFinish = el.querySelector('[data-role="finish"]');
+  const btnSaveManual = el.querySelector('[data-role="save_manual"]');
+
   if (d.jam_mulai) {
     inputMulai.value = d.jam_mulai;
     if (labelMulai) labelMulai.textContent = d.jam_mulai;
   }
   if (d.jam_selesai) {
     inputSelesai.value = d.jam_selesai;
-    if (labelSelesai) labelSelesai.textContent = d.jam_selesai;
+
+    // Toggle buttons based on jam_selesai existence
+    if (inputSelesai.value) {
+      if (btnFinish) btnFinish.style.display = "none";
+      if (btnSaveManual) btnSaveManual.style.display = "inline-block";
+    } else {
+      if (btnFinish) btnFinish.style.display = "inline-block";
+      if (btnSaveManual) btnSaveManual.style.display = "none";
+    }
   }
   if (d.started) {
     if (btnStart) {
@@ -871,6 +889,7 @@ function renderActivity(d, container) {
   if (d.finished) {
     if (btnStart) btnStart.disabled = true;
     if (btnFinish) btnFinish.disabled = true;
+    if (btnSaveManual) btnSaveManual.style.display = "none";
   }
   if (d.startMs && !d.finished) {
     const id = d.id;
@@ -1023,10 +1042,10 @@ function stopActivityTimer(item) {
   }
 }
 
-async function finishActivity(item) {
+async function finishActivity(item, isManual = false) {
   const inputMulai = item.querySelector('input[name="jam_mulai"]');
   const inputSelesai = item.querySelector('input[name="jam_selesai"]');
-  const labelSelesai = item.querySelector('[data-role="label_selesai"]');
+  // const labelSelesai = item.querySelector('[data-role="label_selesai"]'); // Removed
   const btnFinish = item.querySelector('[data-role="finish"]');
   const status = item.querySelector('[data-role="status"]');
   const t = nowHM();
@@ -1034,8 +1053,12 @@ async function finishActivity(item) {
     alert("Klik Mulai terlebih dahulu");
     return;
   }
-  inputSelesai.value = t;
-  if (labelSelesai) labelSelesai.textContent = t;
+
+  if (!isManual) {
+    inputSelesai.value = t;
+  }
+
+  // if (labelSelesai) labelSelesai.textContent = inputSelesai.value; // Removed logic
   stopActivityTimer(item);
 
   const idForTimer = item.dataset.id;
@@ -1164,7 +1187,7 @@ if (activitiesContainer) {
       }
     }
     if (role === "finish") {
-      const newReport = await finishActivity(item);
+      const newReport = await finishActivity(item, false); // Realtime
       try {
         const selesai =
           item.querySelector('input[name="jam_selesai"]')?.value || nowHM();
@@ -1195,8 +1218,101 @@ if (activitiesContainer) {
         );
       }
     }
+    if (role === "save_manual") {
+      const newReport = await finishActivity(item, true); // Manual
+      try {
+        const selesai = item.querySelector('input[name="jam_selesai"]').value;
+        if (!newReport) return; // If validation failed in finishActivity
+
+        await activeCol.doc(id).set(
+          {
+            finished: true,
+            jam_selesai: selesai,
+            uid: currentUser.uid,
+          },
+          { merge: true }
+        );
+
+        if (newReport) {
+          const currentHistoryDate = historyDateInput
+            ? historyDateInput.value
+            : todayStr();
+          if (currentHistoryDate === newReport.tanggal) {
+            historyData.push(newReport);
+            renderHistoryList();
+          }
+        }
+      } catch (err) {
+        alert(
+          err && err.code === "permission-denied"
+            ? "Akses ditolak oleh Firestore Rules saat menyimpan manual."
+            : "Gagal menyimpan manual: " +
+                (err && err.message ? err.message : "Unknown error")
+        );
+      }
+    }
   });
   activitiesContainer.addEventListener("input", async (e) => {
+    if (e.target.name === "jam_selesai") {
+      const item = e.target.closest(".activity-item");
+      const val = e.target.value;
+      const btnFinish = item.querySelector('[data-role="finish"]');
+      const btnSave = item.querySelector('[data-role="save_manual"]');
+      const inputMulai = item.querySelector('input[name="jam_mulai"]');
+      const timer = item.querySelector('[data-role="timer"]');
+      const id = item.dataset.id;
+
+      if (val) {
+        if (btnFinish) btnFinish.style.display = "none";
+        if (btnSave) btnSave.style.display = "inline-block";
+
+        // Stop real-time timer if exists
+        stopActivityTimer(item);
+
+        // Calculate static duration based on input
+        if (inputMulai && inputMulai.value) {
+          const mins = calculateDuration(inputMulai.value, val);
+          if (mins > 0) {
+            timer.textContent = formatDuration(mins); // Use formatDuration (e.g. "X Minutes") or formatHMS if preferred
+            // If you prefer HH:MM:SS format:
+            const h = Math.floor(mins / 60);
+            const m = mins % 60;
+            timer.textContent = formatHMS(h * 3600000 + m * 60000);
+          } else {
+            timer.textContent = "Invalid Time";
+          }
+        }
+      } else {
+        if (btnFinish) btnFinish.style.display = "inline-block";
+        if (btnSave) btnSave.style.display = "none";
+
+        // Restart real-time timer
+        // We need to fetch startMs from Firestore or reconstruct it.
+        // Since we don't have startMs easily here, we can rely on updateActivityElement
+        // which sets up the timer if startMs exists in the data.
+        // Or simpler: check if we have a timer running for this ID, if not start it?
+        // But startMs is needed.
+        // Let's rely on the fact that the data in Firestore (startMs) hasn't changed.
+        // We just need to restart the interval using the original startMs.
+        // However, 'd' is not available here. We can assume the item has data-id.
+        // We can check activityTimers[id].
+
+        // Better approach: Let's re-fetch or re-trigger the timer logic.
+        // Since we stopped it, we need to restart it.
+        // But we need 'startMs'. We can't get it from DOM easily unless stored.
+        // Wait, 'activityTimers[id]' might still have startMs if we only cleared interval.
+
+        if (activityTimers[id] && activityTimers[id].startMs) {
+          const update = () => {
+            const diff = Date.now() - activityTimers[id].startMs;
+            if (timer) timer.textContent = formatHMS(diff);
+          };
+          update();
+          activityTimers[id].interval = setInterval(update, 1000);
+        }
+      }
+    }
+
     const item = e.target.closest(".activity-item");
     if (!item) return;
     if (!currentUser) return;
