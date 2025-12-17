@@ -1585,20 +1585,20 @@ async function exportExcel() {
   }
   let snapshot;
   try {
-    snapshot = await activeCol
+    snapshot = await db.collection("daily_reports")
       .where("uid", "==", currentUser.uid)
       .where("tanggal", "==", tgl)
       .get();
   } catch (err) {
     if (err && err.code === "permission-denied") {
       alert(
-        "Akses ditolak oleh Firestore Rules. Izinkan read pada daily_reports_active."
+        "Akses ditolak oleh Firestore Rules. Izinkan read pada daily_reports."
       );
       return;
     }
     if (err && err.code === "failed-precondition") {
       alert(
-        "Index belum dibuat untuk query uid+finished+tanggal. Buat index di Firestore."
+        "Index belum dibuat untuk query uid+tanggal pada daily_reports. Buat index di Firestore."
       );
       return;
     }
@@ -1636,7 +1636,7 @@ async function exportExcel() {
       d.remarks || "",
       d.pengguna || "",
       dur != null ? formatDuration(dur) : "",
-      d.finished ? "Finish" : "Continue",
+      d.quality || "Finish",
     ];
   });
   if (window.ExcelJS && window.ExcelJS.Workbook) {
