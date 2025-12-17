@@ -62,7 +62,6 @@ const historyContainer = document.getElementById("history_activities");
 const historyDateInput = document.getElementById("historyDate");
 const btnHistoryMore = document.getElementById("btn_history_more");
 let historyTodayLimit = 10;
-let historyTodayFinished = [];
 const activityTimers = {};
 const activeCol = db.collection("daily_reports_active");
 const exportDateInput = document.getElementById("exportTanggal");
@@ -197,6 +196,8 @@ auth.onAuthStateChanged((user) => {
   }
   setUIAuthState();
   refreshDraftsListener();
+  const hDate = (historyDateInput && historyDateInput.value) || todayStr();
+  loadHistoryForDate(hDate);
   const isLoginPage = !!document.getElementById("loginForm");
   if (!currentUser && !isLoginPage) {
     try {
@@ -237,19 +238,11 @@ function loadDraftsRealtime() {
       if (statusEl) statusEl.textContent = "";
       stopAllActivityTimers();
       activitiesContainer.innerHTML = "";
-      const selectedDate =
-        (historyDateInput && historyDateInput.value) || todayStr();
-      const isToday = selectedDate === todayStr();
-      if (isToday && historyContainer) historyContainer.innerHTML = "";
       let activeCount = 0;
-      historyTodayFinished = [];
       snap.forEach((doc) => {
         const d = { id: doc.id, ...doc.data() };
-        if (d.finished && historyContainer) {
-          if (isToday) {
-            historyTodayFinished.push(d);
-          }
-        } else {
+        // Hanya tampilkan yang belum selesai di daftar Draft
+        if (!d.finished) {
           renderActivity(d, activitiesContainer);
           activeCount += 1;
         }
@@ -257,10 +250,6 @@ function loadDraftsRealtime() {
       if (activeCount === 0) {
         activitiesContainer.innerHTML =
           '<div style="text-align:center;padding:16px;color:#777;">No Activities</div>';
-      }
-      if (isToday) {
-        historyTodayLimit = 10;
-        renderHistoryToday();
       }
     },
     (err) => {
@@ -280,8 +269,15 @@ function refreshDraftsListener() {
   unsubDrafts = loadDraftsRealtime();
 }
 
+let unsubHistory = null;
+let historyData = [];
+
 async function loadHistoryForDate(dateStr) {
   if (!historyContainer) return;
+  if (unsubHistory) {
+    unsubHistory();
+    unsubHistory = null;
+  }
   historyContainer.innerHTML = "";
   if (!currentUser) {
     historyContainer.innerHTML =
@@ -289,25 +285,37 @@ async function loadHistoryForDate(dateStr) {
     return;
   }
   if (btnHistoryMore) btnHistoryMore.style.display = "none";
-  try {
-    const snapshot = await db
-      .collection("daily_reports")
-      .where("uid", "==", currentUser.uid)
-      .where("tanggal", "==", dateStr)
-      .get();
-    if (snapshot.empty) {
-      historyContainer.innerHTML =
-        '<div style="text-align:center;padding:16px;color:#777;">No Activities</div>';
-      return;
-    }
-    snapshot.forEach((doc) => {
-      const d = { id: doc.id, ...doc.data(), started: true, finished: true };
-      renderActivitySummary(d, historyContainer);
-    });
-  } catch (err) {
-    historyContainer.innerHTML =
-      '<div style="text-align:center;padding:16px;color:#c00;">Gagal memuat histori</div>';
-  }
+
+  unsubHistory = db
+    .collection("daily_reports")
+    .where("uid", "==", currentUser.uid)
+    .where("tanggal", "==", dateStr)
+    .onSnapshot(
+      (snapshot) => {
+        if (snapshot.empty) {
+          historyContainer.innerHTML =
+            '<div style="text-align:center;padding:16px;color:#777;">No Activities</div>';
+          if (btnHistoryMore) btnHistoryMore.style.display = "none";
+          return;
+        }
+        historyData = [];
+        snapshot.forEach((doc) => {
+          historyData.push({
+            id: doc.id,
+            ...doc.data(),
+            started: true,
+            finished: true,
+          });
+        });
+        // Reset limit on new data load (optional, or keep it)
+        // historyTodayLimit = 10;
+        renderHistoryList();
+      },
+      (err) => {
+        historyContainer.innerHTML =
+          '<div style="text-align:center;padding:16px;color:#c00;">Gagal memuat histori</div>';
+      }
+    );
 }
 
 function parseHM(hm) {
@@ -320,14 +328,11 @@ function parseHM(hm) {
   return h * 60 + m;
 }
 
-function renderHistoryToday() {
+function renderHistoryList() {
   if (!historyContainer) return;
-  const selectedDate =
-    (historyDateInput && historyDateInput.value) || todayStr();
-  const isToday = selectedDate === todayStr();
-  if (!isToday) return;
   historyContainer.innerHTML = "";
-  const sorted = historyTodayFinished.slice().sort((a, b) => {
+
+  const sorted = historyData.slice().sort((a, b) => {
     const am = parseHM(a.jam_selesai);
     const bm = parseHM(b.jam_selesai);
     if (am !== -1 && bm !== -1) return bm - am;
@@ -335,14 +340,14 @@ function renderHistoryToday() {
     const bt = b.created_at && b.created_at.seconds ? b.created_at.seconds : 0;
     return bt - at;
   });
+
   const slice = sorted.slice(0, historyTodayLimit);
   if (slice.length === 0) {
     historyContainer.innerHTML =
       '<div style="text-align:center;padding:16px;color:#777;">No Activities</div>';
   } else {
     slice.forEach((d) => {
-      const dd = { ...d, started: true, finished: true };
-      renderActivitySummary(dd, historyContainer);
+      renderActivitySummary(d, historyContainer);
     });
   }
   if (btnHistoryMore) {
@@ -354,7 +359,7 @@ function renderHistoryToday() {
 if (btnHistoryMore) {
   btnHistoryMore.addEventListener("click", () => {
     historyTodayLimit += 10;
-    renderHistoryToday();
+    renderHistoryList();
   });
 }
 
@@ -414,13 +419,7 @@ if (exportDateInput && !exportDateInput.value) {
 if (historyDateInput) {
   historyDateInput.addEventListener("change", () => {
     const val = historyDateInput.value || todayStr();
-    if (val === todayStr()) {
-      if (historyContainer)
-        historyContainer.innerHTML =
-          '<div style="text-align:center;padding:16px;color:#777;">Memuat...</div>';
-      refreshDraftsListener();
-      return;
-    }
+    historyTodayLimit = 10;
     loadHistoryForDate(val);
   });
 }
