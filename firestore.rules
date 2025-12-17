@@ -1,0 +1,39 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // Fungsi helper untuk mengecek login
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+    
+    // Fungsi helper untuk memastikan pemilik data
+    function isOwner(uid) {
+      return isAuthenticated() && request.auth.uid == uid;
+    }
+
+    // Rules untuk daily_reports_active (Draft)
+    match /daily_reports_active/{docId} {
+      // Izinkan baca jika pemilik data
+      allow read: if isAuthenticated() && resource.data.uid == request.auth.uid;
+      
+      // Izinkan buat jika uid di data sama dengan uid user login
+      allow create: if isOwner(request.resource.data.uid);
+      
+      // Izinkan update dan delete jika pemilik data
+      allow update, delete: if isAuthenticated() && resource.data.uid == request.auth.uid;
+    }
+
+    // Rules untuk daily_reports (History / Finished)
+    match /daily_reports/{docId} {
+      // Izinkan baca jika pemilik data
+      allow read: if isAuthenticated() && resource.data.uid == request.auth.uid;
+      
+      // Izinkan buat jika uid di data sama dengan uid user login
+      allow create: if isOwner(request.resource.data.uid);
+      
+      // PENTING: Izinkan delete untuk fitur Undo
+      allow delete: if isAuthenticated() && resource.data.uid == request.auth.uid;
+    }
+  }
+}

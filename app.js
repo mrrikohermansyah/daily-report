@@ -236,20 +236,53 @@ function loadDraftsRealtime() {
   const unsub = q.onSnapshot(
     (snap) => {
       if (statusEl) statusEl.textContent = "";
-      stopAllActivityTimers();
-      activitiesContainer.innerHTML = "";
+
+      const currentIds = new Set();
       let activeCount = 0;
+
       snap.forEach((doc) => {
         const d = { id: doc.id, ...doc.data() };
         // Hanya tampilkan yang belum selesai di daftar Draft
         if (!d.finished) {
-          renderActivity(d, activitiesContainer);
           activeCount += 1;
+          currentIds.add(d.id);
+          const existingEl = activitiesContainer.querySelector(
+            `.activity-item[data-id="${d.id}"]`
+          );
+          if (existingEl) {
+            updateActivityElement(existingEl, d);
+          } else {
+            renderActivity(d, activitiesContainer);
+          }
         }
       });
+
+      // Hapus item yang tidak ada di snapshot
+      const allItems = Array.from(
+        activitiesContainer.querySelectorAll(".activity-item")
+      );
+      allItems.forEach((el) => {
+        if (!currentIds.has(el.dataset.id)) {
+          if (activityTimers[el.dataset.id]) {
+            clearInterval(activityTimers[el.dataset.id].interval);
+            delete activityTimers[el.dataset.id];
+          }
+          el.remove();
+        }
+      });
+
       if (activeCount === 0) {
-        activitiesContainer.innerHTML =
-          '<div style="text-align:center;padding:16px;color:#777;">No Activities</div>';
+        if (
+          activitiesContainer.querySelectorAll(".activity-item").length === 0
+        ) {
+          activitiesContainer.innerHTML =
+            '<div style="text-align:center;padding:16px;color:#777;">No Activities</div>';
+        }
+      } else {
+        const placeholder = Array.from(activitiesContainer.children).find(
+          (c) => !c.classList.contains("activity-item")
+        );
+        if (placeholder) placeholder.remove();
       }
     },
     (err) => {
@@ -274,10 +307,10 @@ let historyData = [];
 
 async function loadHistoryForDate(dateStr) {
   if (!historyContainer) return;
-  if (unsubHistory) {
-    unsubHistory();
-    unsubHistory = null;
-  }
+  // if (unsubHistory) {
+  //   unsubHistory();
+  //   unsubHistory = null;
+  // }
   historyContainer.innerHTML = "";
   if (!currentUser) {
     historyContainer.innerHTML =
@@ -286,36 +319,32 @@ async function loadHistoryForDate(dateStr) {
   }
   if (btnHistoryMore) btnHistoryMore.style.display = "none";
 
-  unsubHistory = db
-    .collection("daily_reports")
-    .where("uid", "==", currentUser.uid)
-    .where("tanggal", "==", dateStr)
-    .onSnapshot(
-      (snapshot) => {
-        if (snapshot.empty) {
-          historyContainer.innerHTML =
-            '<div style="text-align:center;padding:16px;color:#777;">No Activities</div>';
-          if (btnHistoryMore) btnHistoryMore.style.display = "none";
-          return;
-        }
-        historyData = [];
-        snapshot.forEach((doc) => {
-          historyData.push({
-            id: doc.id,
-            ...doc.data(),
-            started: true,
-            finished: true,
-          });
-        });
-        // Reset limit on new data load (optional, or keep it)
-        // historyTodayLimit = 10;
-        renderHistoryList();
-      },
-      (err) => {
-        historyContainer.innerHTML =
-          '<div style="text-align:center;padding:16px;color:#c00;">Gagal memuat histori</div>';
-      }
-    );
+  try {
+    const snapshot = await db
+      .collection("daily_reports")
+      .where("uid", "==", currentUser.uid)
+      .where("tanggal", "==", dateStr)
+      .get();
+
+    if (snapshot.empty) {
+      historyContainer.innerHTML =
+        '<div style="text-align:center;padding:16px;color:#777;">No Activities</div>';
+      return;
+    }
+    historyData = [];
+    snapshot.forEach((doc) => {
+      historyData.push({
+        id: doc.id,
+        ...doc.data(),
+        started: true,
+        finished: true,
+      });
+    });
+    renderHistoryList();
+  } catch (err) {
+    historyContainer.innerHTML =
+      '<div style="text-align:center;padding:16px;color:#c00;">Gagal memuat histori</div>';
+  }
 }
 
 function parseHM(hm) {
@@ -353,6 +382,82 @@ function renderHistoryList() {
   if (btnHistoryMore) {
     const hasMore = sorted.length > historyTodayLimit;
     btnHistoryMore.style.display = hasMore ? "inline-block" : "none";
+  }
+}
+
+async function undoActivity(historyId) {
+  const result = await Swal.fire({
+    title: "Konfirmasi Undo",
+    text: "Kembalikan aktivitas ini ke status draft (bisa diedit)?",
+    icon: "warning",
+    showCancelButton: true,
+    confirmButtonText: "Ya, Undo!",
+    cancelButtonText: "Batal",
+  });
+
+  if (!result.isConfirmed) return;
+
+  // Cari data history lokal untuk fallback jika perlu
+  const histItem = historyData.find((x) => x.id === historyId);
+
+  try {
+    // 1. Cari dokumen active yang link ke history ini
+    const snapshot = await activeCol
+      .where("uid", "==", currentUser.uid)
+      .where("report_doc_id", "==", historyId)
+      .limit(1)
+      .get();
+
+    if (!snapshot.empty) {
+      const activeDoc = snapshot.docs[0];
+      // Update jadi belum finish
+      await activeCol.doc(activeDoc.id).update({
+        finished: false,
+        jam_selesai: firebase.firestore.FieldValue.delete(),
+        report_doc_id: firebase.firestore.FieldValue.delete(),
+      });
+    } else {
+      // Jika dokumen active asli sudah hilang, buat baru dari data history
+      if (histItem) {
+        const newData = { ...histItem };
+        delete newData.id; // hapus id history
+        delete newData.started; // reset flag view
+        delete newData.finished; // reset flag view
+        // set status active
+        newData.finished = false;
+        newData.started = true;
+        newData.jam_selesai = "";
+        // pastikan uid
+        if (!newData.uid && currentUser) newData.uid = currentUser.uid;
+
+        await activeCol.add(newData);
+      } else {
+        Swal.fire(
+          "Gagal",
+          "Data lokal tidak ditemukan, gagal restore draft.",
+          "error"
+        );
+        return;
+      }
+    }
+
+    // 2. Hapus dari history (daily_reports)
+    await db.collection("daily_reports").doc(historyId).delete();
+
+    // 3. Update UI History secara manual (hapus item dari DOM & array)
+    historyData = historyData.filter((x) => x.id !== historyId);
+    renderHistoryList();
+
+    // Draft list otomatis update karena listener onSnapshot di loadDraftsRealtime
+    Swal.fire({
+      icon: "success",
+      title: "Berhasil Undo",
+      text: "Aktivitas dikembalikan ke Draft",
+      timer: 1500,
+      showConfirmButton: false,
+    });
+  } catch (err) {
+    Swal.fire("Error", "Gagal Undo: " + (err.message || err), "error");
   }
 }
 
@@ -524,6 +629,110 @@ function buildCodeChips(namePrefix) {
     .join("");
 }
 
+function updateActivityElement(el, d) {
+  const updateInput = (selector, value) => {
+    const input = el.querySelector(selector);
+    if (input && document.activeElement !== input) {
+      input.value = value || "";
+    }
+  };
+
+  const updateSelect = (selector, value) => {
+    const input = el.querySelector(selector);
+    if (input && document.activeElement !== input) {
+      input.value = value || "";
+    }
+  };
+
+  updateSelect('select[name="lokasi"]', d.lokasi);
+  updateInput('input[name="pengguna"]', d.pengguna);
+  updateInput('textarea[name="remarks"]', d.remarks);
+  updateSelect('select[name="quality"]', d.quality || "Finish");
+
+  if (Array.isArray(d.kode_pekerjaan)) {
+    const currentCodes = new Set(d.kode_pekerjaan);
+    const checkboxes = el.querySelectorAll('input[type="checkbox"]');
+    checkboxes.forEach((cb) => {
+      // Check if this checkbox belongs to the code group (it should, based on structure)
+      if (
+        cb.name &&
+        cb.name.endsWith("_code") &&
+        document.activeElement !== cb
+      ) {
+        cb.checked = currentCodes.has(cb.value);
+      }
+    });
+  }
+
+  const labelMulai = el.querySelector('[data-role="label_mulai"]');
+  const labelSelesai = el.querySelector('[data-role="label_selesai"]');
+  const inputMulai = el.querySelector('input[name="jam_mulai"]');
+  const inputSelesai = el.querySelector('input[name="jam_selesai"]');
+  const btnStart = el.querySelector('[data-role="start"]');
+  const btnFinish = el.querySelector('[data-role="finish"]');
+
+  if (d.jam_mulai) {
+    if (inputMulai && document.activeElement !== inputMulai)
+      inputMulai.value = d.jam_mulai;
+    if (labelMulai) labelMulai.textContent = d.jam_mulai;
+  }
+  if (d.jam_selesai) {
+    if (inputSelesai && document.activeElement !== inputSelesai)
+      inputSelesai.value = d.jam_selesai;
+    if (labelSelesai) labelSelesai.textContent = d.jam_selesai;
+  }
+
+  if (d.started) {
+    if (btnStart) {
+      btnStart.disabled = true;
+      btnStart.style.display = "none";
+    }
+    if (btnFinish) btnFinish.disabled = false;
+  } else {
+    if (btnStart) {
+      btnStart.disabled = false;
+      btnStart.style.display = "";
+    }
+    if (btnFinish) btnFinish.disabled = true;
+  }
+
+  if (d.finished) {
+    if (btnStart) btnStart.disabled = true;
+    if (btnFinish) btnFinish.disabled = true;
+  }
+
+  // Timer logic
+  const id = d.id;
+  if (d.startMs && !d.finished) {
+    if (!activityTimers[id]) {
+      activityTimers[id] = { startMs: d.startMs, interval: null };
+      const timer = el.querySelector('[data-role="timer"]');
+      const update = () => {
+        const diff = Date.now() - activityTimers[id].startMs;
+        if (timer) timer.textContent = formatHMS(diff);
+      };
+      update();
+      activityTimers[id].interval = setInterval(update, 1000);
+    } else if (activityTimers[id].startMs !== d.startMs) {
+      clearInterval(activityTimers[id].interval);
+      activityTimers[id] = { startMs: d.startMs, interval: null };
+      const timer = el.querySelector('[data-role="timer"]');
+      const update = () => {
+        const diff = Date.now() - activityTimers[id].startMs;
+        if (timer) timer.textContent = formatHMS(diff);
+      };
+      update();
+      activityTimers[id].interval = setInterval(update, 1000);
+    }
+  } else {
+    if (activityTimers[id]) {
+      if (activityTimers[id].interval)
+        clearInterval(activityTimers[id].interval);
+      delete activityTimers[id];
+    }
+  }
+}
+
 function renderActivity(d, container) {
   const el = document.createElement("div");
   el.className = "activity-item";
@@ -675,6 +884,15 @@ function renderActivitySummary(d, container) {
     <div class="summary-remarks">${d.remarks || ""}</div>
     
     <div class="summary-id">Activity ID: ${activityId}</div>
+    ${
+      d.tanggal === todayStr()
+        ? `<div class="summary-footer">
+             <button type="button" class="btn-danger btn-sm" onclick="undoActivity('${d.id}')">
+               <i class="fas fa-undo"></i> Undo
+             </button>
+           </div>`
+        : ""
+    }
   `;
   (container || historyContainer).appendChild(el);
 }
@@ -792,31 +1010,42 @@ async function finishActivity(item) {
   const durasiMenit = calculateDuration(inputMulai.value, inputSelesai.value);
   if (durasiMenit <= 0) {
     alert("Jam selesai harus lebih besar dari jam mulai!");
-    return;
+    return null;
   }
 
+  const reportData = {
+    tanggal,
+    bulan,
+    inv_code: inv,
+    kode_pekerjaan: codes,
+    lokasi,
+    remarks,
+    pengguna,
+    jam_mulai: inputMulai.value,
+    jam_selesai: inputSelesai.value,
+    durasi_menit: durasiMenit,
+    quality,
+    created_at: firebase.firestore.FieldValue.serverTimestamp(),
+    uid: currentUser.uid,
+    user_email: currentUser.email || "",
+  };
+
   try {
-    const docRef = await db.collection("daily_reports").add({
-      tanggal,
-      bulan,
-      inv_code: inv,
-      kode_pekerjaan: codes,
-      lokasi,
-      remarks,
-      pengguna,
-      jam_mulai: inputMulai.value,
-      jam_selesai: inputSelesai.value,
-      durasi_menit: durasiMenit,
-      quality,
-      created_at: firebase.firestore.FieldValue.serverTimestamp(),
-      uid: currentUser.uid,
-      user_email: currentUser.email || "",
-    });
+    const docRef = await db.collection("daily_reports").add(reportData);
     try {
       await activeCol
         .doc(idForTimer)
         .set({ report_doc_id: docRef.id }, { merge: true });
     } catch (e) {}
+
+    if (btnFinish) btnFinish.disabled = true;
+    const btnStart = item.querySelector('[data-role="start"]');
+    if (btnStart) btnStart.disabled = true;
+    const timer = item.querySelector('[data-role="timer"]');
+    if (timer) timer.textContent = "00:00:00";
+    if (status) status.textContent = "Tersimpan";
+
+    return { id: docRef.id, ...reportData };
   } catch (err) {
     alert(
       err && err.code === "permission-denied"
@@ -824,15 +1053,8 @@ async function finishActivity(item) {
         : "Gagal menyimpan laporan: " +
             (err && err.message ? err.message : "Unknown error")
     );
-    return;
+    return null;
   }
-
-  if (btnFinish) btnFinish.disabled = true;
-  const btnStart = item.querySelector('[data-role="start"]');
-  if (btnStart) btnStart.disabled = true;
-  const timer = item.querySelector('[data-role="timer"]');
-  if (timer) timer.textContent = "00:00:00";
-  if (status) status.textContent = "Tersimpan";
 }
 
 if (activitiesContainer) {
@@ -871,7 +1093,7 @@ if (activitiesContainer) {
       }
     }
     if (role === "finish") {
-      await finishActivity(item);
+      const newReport = await finishActivity(item);
       try {
         const selesai =
           item.querySelector('input[name="jam_selesai"]')?.value || nowHM();
@@ -883,6 +1105,16 @@ if (activitiesContainer) {
           },
           { merge: true }
         );
+
+        if (newReport) {
+          const currentHistoryDate = historyDateInput
+            ? historyDateInput.value
+            : todayStr();
+          if (currentHistoryDate === newReport.tanggal) {
+            historyData.push(newReport);
+            renderHistoryList();
+          }
+        }
       } catch (err) {
         alert(
           err && err.code === "permission-denied"
