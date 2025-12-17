@@ -847,3 +847,14 @@ textarea {
     max-width: none !important;
   }
 }
+
+/* Version Label */
+.version-label {
+  position: fixed;
+  bottom: 10px;
+  left: 10px;
+  font-size: 0.75rem;
+  color: rgba(0, 0, 0, 0.4);
+  pointer-events: none;
+  z-index: 9999;
+}
