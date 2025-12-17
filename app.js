@@ -297,7 +297,19 @@ auth.onAuthStateChanged((user) => {
   }
   if (currentUser && isLoginPage) {
     try {
-      window.location.href = "index.html";
+      Swal.fire({
+        toast: true,
+        position: "top-end",
+        icon: "success",
+        title: "Berhasil login",
+        showConfirmButton: false,
+        timer: 1600,
+        timerProgressBar: true,
+        showClass: { popup: "swal2-animate-fade-up-in" },
+        hideClass: { popup: "swal2-animate-fade-up-out" },
+      }).then(() => {
+        window.location.href = "index.html";
+      });
     } catch {}
   }
 });
@@ -541,11 +553,16 @@ async function undoActivity(historyId) {
 
     // Draft list otomatis update karena listener onSnapshot di loadDraftsRealtime
     Swal.fire({
+      toast: true,
+      position: "top-end",
       icon: "success",
       title: "Berhasil Undo",
       text: "Aktivitas dikembalikan ke Draft",
       timer: 1500,
+      timerProgressBar: true,
       showConfirmButton: false,
+      showClass: { popup: "swal2-animate-fade-up-in" },
+      hideClass: { popup: "swal2-animate-fade-up-out" },
     });
   } catch (err) {
     Swal.fire("Error", "Gagal Undo: " + (err.message || err), "error");
@@ -1126,7 +1143,7 @@ async function finishActivity(item, isManual = false) {
   ).map((cb) => cb.value);
 
   const durasiMenit = calculateDuration(inputMulai.value, inputSelesai.value);
-  if (durasiMenit <= 0) {
+  if (durasiMenit < 0) {
     alert("Jam selesai harus lebih besar dari jam mulai!");
     return null;
   }
@@ -1204,6 +1221,18 @@ if (activitiesContainer) {
       try {
         stopActivityTimer(item);
         await activeCol.doc(id).delete();
+        Swal.fire({
+          toast: true,
+          position: "top-end",
+          icon: "success",
+          title: "Aktivitas dihapus",
+          text: "Aktivitas telah dihapus dari daftar Aktif",
+          timer: 1500,
+          timerProgressBar: true,
+          showConfirmButton: false,
+          showClass: { popup: "swal2-animate-fade-up-in" },
+          hideClass: { popup: "swal2-animate-fade-up-out" },
+        });
         // Item will be removed automatically by onSnapshot listener
       } catch (err) {
         alert(
@@ -1237,27 +1266,39 @@ if (activitiesContainer) {
       }
     }
     if (role === "finish") {
-      const newReport = await finishActivity(item, false); // Realtime
+      const newReport = await finishActivity(item, false); // Realtime sets jam_selesai = now
+      if (!newReport) return; // Abort if validation failed
       try {
-        const selesai =
-          item.querySelector('input[name="jam_selesai"]')?.value || nowHM();
         await activeCol.doc(id).set(
           {
             finished: true,
-            jam_selesai: selesai,
+            jam_selesai: newReport.jam_selesai,
             uid: currentUser.uid,
           },
           { merge: true }
         );
 
-        if (newReport) {
-          const currentHistoryDate = historyDateInput
-            ? historyDateInput.value
-            : todayStr();
-          if (currentHistoryDate === newReport.tanggal) {
-            historyData.push(newReport);
-            renderHistoryList();
-          }
+        const currentHistoryDate = historyDateInput
+          ? historyDateInput.value
+          : todayStr();
+        if (currentHistoryDate === newReport.tanggal) {
+          historyData.push(newReport);
+          renderHistoryList();
+        }
+        Swal.fire({
+          toast: true,
+          position: "top-end",
+          icon: "success",
+          title: "Aktivitas diselesaikan",
+          text: "Aktivitas dipindahkan ke Activities Done (Today)",
+          timer: 1500,
+          timerProgressBar: true,
+          showConfirmButton: false,
+          showClass: { popup: "swal2-animate-fade-up-in" },
+          hideClass: { popup: "swal2-animate-fade-up-out" },
+        });
+        if (item && item.parentElement) {
+          item.remove();
         }
       } catch (err) {
         alert(
@@ -1291,6 +1332,21 @@ if (activitiesContainer) {
             historyData.push(newReport);
             renderHistoryList();
           }
+        }
+        Swal.fire({
+          toast: true,
+          position: "top-end",
+          icon: "success",
+          title: "Aktivitas diselesaikan",
+          text: "Aktivitas dipindahkan ke Activities Done (Today)",
+          timer: 1500,
+          timerProgressBar: true,
+          showConfirmButton: false,
+          showClass: { popup: "swal2-animate-fade-up-in" },
+          hideClass: { popup: "swal2-animate-fade-up-out" },
+        });
+        if (item && item.parentElement) {
+          item.remove();
         }
       } catch (err) {
         alert(
@@ -1444,11 +1500,16 @@ if (reportFormEl)
         user_email: currentUser.email || "",
       });
       Swal.fire({
+        toast: true,
+        position: "top-end",
         icon: "success",
         title: "Aktivitas Ditambahkan",
         text: "Aktivitas baru telah ditambahkan ke daftar Aktif",
         timer: 1500,
+        timerProgressBar: true,
         showConfirmButton: false,
+        showClass: { popup: "swal2-animate-fade-up-in" },
+        hideClass: { popup: "swal2-animate-fade-up-out" },
       });
       e.target.reset();
 
