@@ -783,6 +783,10 @@ function renderActivity(d, container) {
     </div>
     <div class="activity-actions">
       <span class="muted" data-role="status"></span>
+      <div style="flex: 1"></div>
+      <button type="button" class="btn-danger btn-sm" data-role="delete" title="Delete Activity">
+         <i class="fas fa-trash-alt"></i>
+      </button>
     </div>
   `;
   (container || activitiesContainer).appendChild(el);
@@ -1070,6 +1074,32 @@ if (activitiesContainer) {
     }
     const role = btn.getAttribute("data-role");
     const id = item.dataset.id;
+    if (role === "delete") {
+      const result = await Swal.fire({
+        title: "Hapus Aktivitas?",
+        text: "Aktivitas ini akan dihapus permanen.",
+        icon: "warning",
+        showCancelButton: true,
+        confirmButtonColor: "#dc2626",
+        confirmButtonText: "Ya, Hapus!",
+        cancelButtonText: "Batal",
+      });
+
+      if (!result.isConfirmed) return;
+
+      try {
+        stopActivityTimer(item);
+        await activeCol.doc(id).delete();
+        // Item will be removed automatically by onSnapshot listener
+      } catch (err) {
+        alert(
+          err && err.code === "permission-denied"
+            ? "Akses ditolak oleh Firestore Rules saat menghapus aktivitas."
+            : "Gagal menghapus aktivitas: " +
+                (err && err.message ? err.message : "Unknown error")
+        );
+      }
+    }
     if (role === "start") {
       startActivityTimer(item);
       const jm = item.querySelector('input[name="jam_mulai"]').value;
