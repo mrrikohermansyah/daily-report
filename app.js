@@ -720,7 +720,7 @@ const locations = [
   { value: "Lainlain", label: "Other Location" },
 ];
 
-const codesList = ["HW", "SW", "NW", "MV", "OT"];
+const codesList = ["HW", "SW", "NW", "MV", "OT", "DR"];
 
 function buildLocationOptions() {
   return locations
