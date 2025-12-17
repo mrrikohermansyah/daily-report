@@ -855,6 +855,10 @@ function renderActivity(d, container) {
   el.className = "activity-item";
   el.dataset.id = d.id;
   el.innerHTML = `
+    <div class="form-group">
+      <label>Inv Code</label>
+      <input type="text" name="item_inv_code" placeholder="PC20024MEB" />
+    </div>
     <div class="form-row">
       <div class="form-group">
         <label>Lokasi</label>
@@ -908,9 +912,37 @@ function renderActivity(d, container) {
   `;
   (container || activitiesContainer).appendChild(el);
   const selLokasi = el.querySelector('select[name="lokasi"]');
+  const inInvCode = el.querySelector('input[name="item_inv_code"]');
   const inPengguna = el.querySelector('input[name="pengguna"]');
   const taRemarks = el.querySelector('textarea[name="remarks"]');
   const selQuality = el.querySelector('select[name="quality"]');
+  if (inInvCode) {
+    if (d.inv_code) {
+      inInvCode.value = d.inv_code;
+    } else {
+      const globalInvEl = document.getElementById("inv_code");
+      const globalInv = (globalInvEl && globalInvEl.value) || "";
+      if (globalInv) {
+        inInvCode.value = globalInv.toUpperCase();
+        try {
+          if (currentUser && d.id) {
+            activeCol
+              .doc(d.id)
+              .set(
+                { inv_code: globalInv.toUpperCase(), uid: currentUser.uid },
+                { merge: true }
+              );
+          }
+        } catch (e) {}
+      }
+    }
+    inInvCode.addEventListener("input", () => {
+      const s = inInvCode.selectionStart;
+      const e = inInvCode.selectionEnd;
+      inInvCode.value = (inInvCode.value || "").toUpperCase();
+      if (s != null && e != null) inInvCode.setSelectionRange(s, e);
+    });
+  }
   if (selLokasi && d.lokasi) selLokasi.value = d.lokasi;
   if (inPengguna && d.pengguna) inPengguna.value = d.pengguna;
   if (taRemarks && d.remarks) taRemarks.value = d.remarks;
@@ -1132,7 +1164,17 @@ async function finishActivity(item, isManual = false) {
   const recTimer = activityTimers[idForTimer];
   const tanggal = todayStr();
   const bulan = tanggal.slice(0, 7);
-  const inv = document.getElementById("inv_code").value.toUpperCase();
+  let inv = "";
+  try {
+    const activeSnap = await activeCol.doc(idForTimer).get();
+    if (activeSnap.exists) {
+      inv = (activeSnap.data().inv_code || "").toUpperCase();
+    }
+  } catch (e) {}
+  if (!inv) {
+    const invInputEl = document.getElementById("inv_code");
+    inv = invInputEl && invInputEl.value ? invInputEl.value.toUpperCase() : "";
+  }
   const qualityEl = item.querySelector('select[name="quality"]');
   const quality = qualityEl ? qualityEl.value : "Finish";
   const lokasi = item.querySelector('select[name="lokasi"]').value;
@@ -1424,6 +1466,7 @@ if (activitiesContainer) {
     if (!currentUser) return;
     const id = item.dataset.id;
     const lokasiEl = item.querySelector('select[name="lokasi"]');
+    const invItemEl = item.querySelector('input[name="item_inv_code"]');
     const penggunaEl = item.querySelector('input[name="pengguna"]');
     const remarksEl = item.querySelector('textarea[name="remarks"]');
     const qualityEl = item.querySelector('select[name="quality"]');
@@ -1431,17 +1474,18 @@ if (activitiesContainer) {
       item.querySelectorAll('input[name$="_code"]:checked')
     ).map((cb) => cb.value);
     try {
-      await activeCol.doc(id).set(
-        {
-          lokasi: lokasiEl ? lokasiEl.value : "",
-          pengguna: penggunaEl ? penggunaEl.value : "",
-          remarks: remarksEl ? remarksEl.value : "",
-          quality: qualityEl ? qualityEl.value : "Finish",
-          kode_pekerjaan: codes,
-          uid: currentUser.uid,
-        },
-        { merge: true }
-      );
+      const payload = {
+        lokasi: lokasiEl ? lokasiEl.value : "",
+        pengguna: penggunaEl ? penggunaEl.value : "",
+        remarks: remarksEl ? remarksEl.value : "",
+        quality: qualityEl ? qualityEl.value : "Finish",
+        kode_pekerjaan: codes,
+        uid: currentUser.uid,
+      };
+      if (invItemEl) {
+        payload.inv_code = (invItemEl.value || "").toUpperCase();
+      }
+      await activeCol.doc(id).set(payload, { merge: true });
     } catch (err) {
       alert(
         err && err.code === "permission-denied"
