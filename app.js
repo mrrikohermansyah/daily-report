@@ -13,6 +13,8 @@ firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore();
 const auth = firebase.auth();
 
+let idleLogoutPending = false;
+
 // =========================
 // THEME MANAGEMENT
 // =========================
@@ -87,14 +89,25 @@ function resetIdleTimer() {
 
 function handleIdleTimeout() {
   if (currentUser) {
-    auth.signOut().then(() => {
-      Swal.fire({
-        icon: "warning",
-        title: "Sesi Berakhir",
-        text: "Anda telah logout otomatis karena tidak ada aktivitas selama 30 menit.",
-        confirmButtonText: "OK",
+    idleLogoutPending = true;
+    auth
+      .signOut()
+      .then(() => {
+        return Swal.fire({
+          icon: "warning",
+          title: "Session Ended",
+          text: "You Have Automatically Logged Out Due to Inactive for 30 Minutes",
+          confirmButtonText: "OK",
+          allowOutsideClick: false,
+          allowEscapeKey: false,
+        });
+      })
+      .then(() => {
+        idleLogoutPending = false;
+        try {
+          window.location.replace("login.html");
+        } catch {}
       });
-    });
   }
 }
 
@@ -290,9 +303,9 @@ auth.onAuthStateChanged((user) => {
   const hDate = (historyDateInput && historyDateInput.value) || todayStr();
   loadHistoryForDate(hDate);
   const isLoginPage = !!document.getElementById("loginForm");
-  if (!currentUser && !isLoginPage) {
+  if (!currentUser && !isLoginPage && !idleLogoutPending) {
     try {
-      window.location.href = "login.html";
+      window.location.replace("login.html");
     } catch {}
   }
   if (currentUser && isLoginPage) {
@@ -308,7 +321,7 @@ auth.onAuthStateChanged((user) => {
         showClass: { popup: "swal2-animate-fade-up-in" },
         hideClass: { popup: "swal2-animate-fade-up-out" },
       }).then(() => {
-        window.location.href = "index.html";
+        window.location.replace("index.html");
       });
     } catch {}
   }
