@@ -63,6 +63,7 @@ document.addEventListener("DOMContentLoaded", () => {
   initTheme();
   const btn = document.getElementById("themeToggle");
   if (btn) btn.addEventListener("click", toggleTheme);
+  showPersistentToastIfAny();
 });
 
 // Set Auth Persistence to SESSION (logout on tab close)
@@ -71,6 +72,29 @@ auth.setPersistence(firebase.auth.Auth.Persistence.SESSION).catch((error) => {
 });
 
 let currentUser = null;
+
+function showPersistentToastIfAny() {
+  try {
+    const raw = sessionStorage.getItem("postLoginToast");
+    if (!raw) return;
+    sessionStorage.removeItem("postLoginToast");
+    let data = {};
+    try {
+      data = JSON.parse(raw) || {};
+    } catch {}
+    Swal.fire({
+      toast: true,
+      position: data.position || "top-end",
+      icon: data.icon || "success",
+      title: data.title || "Berhasil login",
+      showConfirmButton: false,
+      timer: data.timer || 1600,
+      timerProgressBar: true,
+      showClass: { popup: "swal2-animate-fade-up-in" },
+      hideClass: { popup: "swal2-animate-fade-up-out" },
+    });
+  } catch {}
+}
 
 // =========================
 // AUTO LOGOUT (IDLE TIMEOUT)
@@ -310,19 +334,14 @@ auth.onAuthStateChanged((user) => {
   }
   if (currentUser && isLoginPage) {
     try {
-      Swal.fire({
-        toast: true,
-        position: "top-end",
+      const data = {
         icon: "success",
         title: "Berhasil login",
-        showConfirmButton: false,
         timer: 1600,
-        timerProgressBar: true,
-        showClass: { popup: "swal2-animate-fade-up-in" },
-        hideClass: { popup: "swal2-animate-fade-up-out" },
-      }).then(() => {
-        window.location.replace("index.html");
-      });
+        position: "top-end",
+      };
+      sessionStorage.setItem("postLoginToast", JSON.stringify(data));
+      window.location.replace("index.html");
     } catch {}
   }
 });
