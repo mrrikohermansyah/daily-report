@@ -460,6 +460,42 @@ function parseHM(hm) {
   return h * 60 + m;
 }
 
+function getRelativeDateLabel(dateStr) {
+  const t = new Date();
+  const today = `${t.getFullYear()}-${pad(t.getMonth() + 1)}-${pad(
+    t.getDate()
+  )}`;
+
+  const y = new Date(t);
+  y.setDate(t.getDate() - 1);
+  const yesterday = `${y.getFullYear()}-${pad(y.getMonth() + 1)}-${pad(
+    y.getDate()
+  )}`;
+
+  if (dateStr === today) return "(Today)";
+  if (dateStr === yesterday) return "(Yesterday)";
+  return `(${dateStr})`;
+}
+
+function updateHistoryTitle(count, dateStr) {
+  const titleEl = document.querySelector("#card_history .card-title"); // Need to add ID to card
+  // Or find by text content if no ID, but adding ID is better.
+  // Let's use the selector for now based on structure
+  const section = historyContainer.closest("section");
+  if (!section) return;
+  const title = section.querySelector(".card-title");
+  if (!title) return;
+
+  const dateLabel = getRelativeDateLabel(dateStr);
+  const activityWord = count === 1 ? "Activity" : "Activities";
+
+  if (count === 0) {
+    title.textContent = `Activities Done ${dateLabel}`;
+  } else {
+    title.textContent = `${count} ${activityWord} Done ${dateLabel}`;
+  }
+}
+
 function renderHistoryList() {
   if (!historyContainer) return;
   historyContainer.innerHTML = "";
@@ -472,6 +508,9 @@ function renderHistoryList() {
     const bt = b.created_at && b.created_at.seconds ? b.created_at.seconds : 0;
     return bt - at;
   });
+
+  const dateStr = historyDateInput.value || todayStr();
+  updateHistoryTitle(sorted.length, dateStr);
 
   const slice = sorted.slice(0, historyTodayLimit);
   if (slice.length === 0) {
