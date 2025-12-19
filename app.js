@@ -1585,7 +1585,8 @@ async function exportExcel() {
   }
   let snapshot;
   try {
-    snapshot = await db.collection("daily_reports")
+    snapshot = await db
+      .collection("daily_reports")
       .where("uid", "==", currentUser.uid)
       .where("tanggal", "==", tgl)
       .get();
