@@ -582,7 +582,7 @@ button {
    ============================================ */
 
 /* Tablet & Desktop */
-@media (min-width: 640px) {
+@media (min-width: 920px) {
   .form-row {
     grid-template-columns: repeat(2, 1fr);
   }
@@ -636,7 +636,7 @@ button {
 }
 
 /* MOBILE SPECIFIC FIXES */
-@media (max-width: 480px) {
+@media (max-width: 919px) {
   /* Safe area untuk notch devices */
   .container {
     padding: 16px;
@@ -683,17 +683,15 @@ button {
     align-items: center;
     justify-content: space-between;
     flex-wrap: nowrap;
-    /* Fixed position for mobile */
+    /* Fixed position for mobile but preserving shape */
     position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    width: 100%;
-    margin: 0;
-    border-radius: 0;
-    border-left: none;
-    border-right: none;
-    border-top: none;
+    top: 10px;
+    left: max(16px, env(safe-area-inset-left));
+    right: max(16px, env(safe-area-inset-right));
+    width: auto; /* Allow auto width to respect left/right margins */
+    max-width: 960px; /* Limit width like desktop */
+    margin: 0 auto; /* Center if width < max-width */
+    border-radius: 14px;
     z-index: 1000;
     overflow: visible;
     background: var(--surface);
