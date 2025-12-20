@@ -169,10 +169,37 @@ body {
 
 .content.section-grid,
 main.content,
-#activities,
+#activities {
+  max-width: 100%;
+  overflow-x: hidden;
+}
+
 #history_activities {
   max-width: 100%;
   overflow-x: hidden;
+  max-height: 400px;
+  overflow-y: auto;
+  padding-right: 5px; /* Prevent scrollbar from covering content */
+  /* Modern Scrollbar */
+  scrollbar-width: thin;
+  scrollbar-color: var(--muted) transparent;
+}
+
+#history_activities::-webkit-scrollbar {
+  width: 6px;
+}
+
+#history_activities::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+#history_activities::-webkit-scrollbar-thumb {
+  background-color: var(--border);
+  border-radius: 20px;
+}
+
+#history_activities::-webkit-scrollbar-thumb:hover {
+  background-color: var(--muted);
 }
 
 #historyDate {
