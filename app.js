@@ -73,6 +73,26 @@ auth.setPersistence(firebase.auth.Auth.Persistence.SESSION).catch((error) => {
 
 let currentUser = null;
 
+function showToast(icon, title, text = "") {
+  const isMobile = window.innerWidth < 640;
+  Swal.fire({
+    toast: true,
+    position: isMobile ? "top" : "top-end",
+    icon: icon,
+    title: title,
+    text: text,
+    showConfirmButton: false,
+    timer: 1500,
+    timerProgressBar: true,
+    didOpen: (toast) => {
+      toast.addEventListener('mouseenter', Swal.stopTimer)
+      toast.addEventListener('mouseleave', Swal.resumeTimer)
+    },
+    showClass: { popup: "swal2-animate-fade-up-in" },
+    hideClass: { popup: "swal2-animate-fade-up-out" },
+  });
+}
+
 function showPersistentToastIfAny() {
   try {
     const raw = sessionStorage.getItem("postLoginToast");
@@ -81,19 +101,9 @@ function showPersistentToastIfAny() {
     let data = {};
     try {
       data = JSON.parse(raw) || {};
-    } catch {}
-    Swal.fire({
-      toast: true,
-      position: data.position || "top-end",
-      icon: data.icon || "success",
-      title: data.title || "Berhasil login",
-      showConfirmButton: false,
-      timer: data.timer || 1600,
-      timerProgressBar: true,
-      showClass: { popup: "swal2-animate-fade-up-in" },
-      hideClass: { popup: "swal2-animate-fade-up-out" },
-    });
-  } catch {}
+    } catch { }
+    showToast(data.icon || "success", data.title || "Berhasil login", data.text || "");
+  } catch { }
 }
 
 // =========================
@@ -130,7 +140,7 @@ function handleIdleTimeout() {
         idleLogoutPending = false;
         try {
           window.location.replace("login.html");
-        } catch {}
+        } catch { }
       });
   }
 }
@@ -330,7 +340,7 @@ auth.onAuthStateChanged((user) => {
   if (!currentUser && !isLoginPage && !idleLogoutPending) {
     try {
       window.location.replace("login.html");
-    } catch {}
+    } catch { }
   }
   if (currentUser && isLoginPage) {
     try {
@@ -342,7 +352,7 @@ auth.onAuthStateChanged((user) => {
       };
       sessionStorage.setItem("postLoginToast", JSON.stringify(data));
       window.location.replace("index.html");
-    } catch {}
+    } catch { }
   }
 });
 
@@ -623,18 +633,7 @@ async function undoActivity(historyId) {
     renderHistoryList();
 
     // Draft list otomatis update karena listener onSnapshot di loadDraftsRealtime
-    Swal.fire({
-      toast: true,
-      position: "top-end",
-      icon: "success",
-      title: "Berhasil Undo",
-      text: "Aktivitas dikembalikan ke Draft",
-      timer: 1500,
-      timerProgressBar: true,
-      showConfirmButton: false,
-      showClass: { popup: "swal2-animate-fade-up-in" },
-      hideClass: { popup: "swal2-animate-fade-up-out" },
-    });
+    showToast("success", "Berhasil Undo", "Aktivitas dikembalikan ke Draft");
   } catch (err) {
     Swal.fire("Error", "Gagal Undo: " + (err.message || err), "error");
   }
@@ -1004,7 +1003,7 @@ function renderActivity(d, container) {
                 { merge: true }
               );
           }
-        } catch (e) {}
+        } catch (e) { }
       }
     }
     inInvCode.addEventListener("input", () => {
@@ -1110,22 +1109,20 @@ function renderActivitySummary(d, container) {
     </div>
     <div class="summary-times">
       <span>${d.jam_mulai || "-"}</span> - <span>${d.jam_selesai || "-"}</span>
-      <span class="summary-duration ${durClass}">${
-    dur != null ? formatDuration(dur) : ""
-  }</span>
+      <span class="summary-duration ${durClass}">${dur != null ? formatDuration(dur) : ""
+    }</span>
       <span style="margin-left:8px;">${d.quality || ""}</span>
     </div>
     <div class="summary-remarks">${d.remarks || ""}</div>
     
     <div class="summary-id">Activity ID: ${activityId}</div>
-    ${
-      d.tanggal === todayStr()
-        ? `<div class="summary-footer">
+    ${d.tanggal === todayStr()
+      ? `<div class="summary-footer">
              <button type="button" class="btn-danger btn-sm" onclick="undoActivity('${d.id}')">
                <i class="fas fa-undo"></i> Undo
              </button>
            </div>`
-        : ""
+      : ""
     }
   `;
   (container || historyContainer).appendChild(el);
@@ -1174,7 +1171,7 @@ async function addActivity() {
       err && err.code === "permission-denied"
         ? "Akses ditolak oleh Firestore Rules saat menambahkan aktivitas."
         : "Gagal menambahkan aktivitas: " +
-            (err && err.message ? err.message : "Unknown error")
+        (err && err.message ? err.message : "Unknown error")
     );
   }
 }
@@ -1241,7 +1238,7 @@ async function finishActivity(item, isManual = false) {
     if (activeSnap.exists) {
       inv = (activeSnap.data().inv_code || "").toUpperCase();
     }
-  } catch (e) {}
+  } catch (e) { }
   if (!inv) {
     const invInputEl = document.getElementById("inv_code");
     inv = invInputEl && invInputEl.value ? invInputEl.value.toUpperCase() : "";
@@ -1284,7 +1281,7 @@ async function finishActivity(item, isManual = false) {
       await activeCol
         .doc(idForTimer)
         .set({ report_doc_id: docRef.id }, { merge: true });
-    } catch (e) {}
+    } catch (e) { }
 
     if (btnFinish) btnFinish.disabled = true;
     const btnStart = item.querySelector('[data-role="start"]');
@@ -1299,7 +1296,7 @@ async function finishActivity(item, isManual = false) {
       err && err.code === "permission-denied"
         ? "Akses ditolak oleh Firestore Rules saat menyimpan laporan selesai."
         : "Gagal menyimpan laporan: " +
-            (err && err.message ? err.message : "Unknown error")
+        (err && err.message ? err.message : "Unknown error")
     );
     return null;
   }
@@ -1334,25 +1331,14 @@ if (activitiesContainer) {
       try {
         stopActivityTimer(item);
         await activeCol.doc(id).delete();
-        Swal.fire({
-          toast: true,
-          position: "top-end",
-          icon: "success",
-          title: "Aktivitas dihapus",
-          text: "Aktivitas telah dihapus dari daftar Aktif",
-          timer: 1500,
-          timerProgressBar: true,
-          showConfirmButton: false,
-          showClass: { popup: "swal2-animate-fade-up-in" },
-          hideClass: { popup: "swal2-animate-fade-up-out" },
-        });
+        showToast("success", "Aktivitas dihapus", "Aktivitas telah dihapus dari daftar Aktif");
         // Item will be removed automatically by onSnapshot listener
       } catch (err) {
         alert(
           err && err.code === "permission-denied"
             ? "Akses ditolak oleh Firestore Rules saat menghapus aktivitas."
             : "Gagal menghapus aktivitas: " +
-                (err && err.message ? err.message : "Unknown error")
+            (err && err.message ? err.message : "Unknown error")
         );
       }
     }
@@ -1374,7 +1360,7 @@ if (activitiesContainer) {
           err && err.code === "permission-denied"
             ? "Akses ditolak oleh Firestore Rules saat memulai aktivitas."
             : "Gagal memulai aktivitas: " +
-                (err && err.message ? err.message : "Unknown error")
+            (err && err.message ? err.message : "Unknown error")
         );
       }
     }
@@ -1398,18 +1384,7 @@ if (activitiesContainer) {
           historyData.push(newReport);
           renderHistoryList();
         }
-        Swal.fire({
-          toast: true,
-          position: "top-end",
-          icon: "success",
-          title: "Aktivitas diselesaikan",
-          text: "Aktivitas dipindahkan ke Activities Done (Today)",
-          timer: 1500,
-          timerProgressBar: true,
-          showConfirmButton: false,
-          showClass: { popup: "swal2-animate-fade-up-in" },
-          hideClass: { popup: "swal2-animate-fade-up-out" },
-        });
+        showToast("success", "Aktivitas diselesaikan", "Aktivitas dipindahkan ke Activities Done (Today)");
         if (item && item.parentElement) {
           item.remove();
         }
@@ -1418,7 +1393,7 @@ if (activitiesContainer) {
           err && err.code === "permission-denied"
             ? "Akses ditolak oleh Firestore Rules saat menandai selesai."
             : "Gagal menandai selesai: " +
-                (err && err.message ? err.message : "Unknown error")
+            (err && err.message ? err.message : "Unknown error")
         );
       }
     }
@@ -1446,18 +1421,7 @@ if (activitiesContainer) {
             renderHistoryList();
           }
         }
-        Swal.fire({
-          toast: true,
-          position: "top-end",
-          icon: "success",
-          title: "Aktivitas diselesaikan",
-          text: "Aktivitas dipindahkan ke Activities Done (Today)",
-          timer: 1500,
-          timerProgressBar: true,
-          showConfirmButton: false,
-          showClass: { popup: "swal2-animate-fade-up-in" },
-          hideClass: { popup: "swal2-animate-fade-up-out" },
-        });
+        showToast("success", "Aktivitas diselesaikan", "Aktivitas dipindahkan ke Activities Done (Today)");
         if (item && item.parentElement) {
           item.remove();
         }
@@ -1466,7 +1430,7 @@ if (activitiesContainer) {
           err && err.code === "permission-denied"
             ? "Akses ditolak oleh Firestore Rules saat menyimpan manual."
             : "Gagal menyimpan manual: " +
-                (err && err.message ? err.message : "Unknown error")
+            (err && err.message ? err.message : "Unknown error")
         );
       }
     }
@@ -1562,7 +1526,7 @@ if (activitiesContainer) {
         err && err.code === "permission-denied"
           ? "Akses ditolak oleh Firestore Rules saat mengubah aktivitas."
           : "Gagal mengubah aktivitas: " +
-              (err && err.message ? err.message : "Unknown error")
+          (err && err.message ? err.message : "Unknown error")
       );
     }
   });
@@ -1614,18 +1578,7 @@ if (reportFormEl)
         uid: currentUser.uid,
         user_email: currentUser.email || "",
       });
-      Swal.fire({
-        toast: true,
-        position: "top-end",
-        icon: "success",
-        title: "Aktivitas Ditambahkan",
-        text: "Aktivitas baru telah ditambahkan ke daftar Aktif",
-        timer: 1500,
-        timerProgressBar: true,
-        showConfirmButton: false,
-        showClass: { popup: "swal2-animate-fade-up-in" },
-        hideClass: { popup: "swal2-animate-fade-up-out" },
-      });
+      showToast("success", "Aktivitas Ditambahkan", "Aktivitas baru telah ditambahkan ke daftar Aktif");
       e.target.reset();
 
       // Preserve checkbox state reset explicitly if needed, though reset() usually handles it
@@ -1676,7 +1629,7 @@ async function exportExcel() {
     }
     alert(
       "Gagal mengambil data: " +
-        (err && err.message ? err.message : "Unknown error")
+      (err && err.message ? err.message : "Unknown error")
     );
     return;
   }
