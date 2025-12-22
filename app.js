@@ -85,8 +85,8 @@ function showToast(icon, title, text = "") {
     timer: 1500,
     timerProgressBar: true,
     didOpen: (toast) => {
-      toast.addEventListener('mouseenter', Swal.stopTimer)
-      toast.addEventListener('mouseleave', Swal.resumeTimer)
+      toast.addEventListener("mouseenter", Swal.stopTimer);
+      toast.addEventListener("mouseleave", Swal.resumeTimer);
     },
     showClass: { popup: "swal2-animate-fade-up-in" },
     hideClass: { popup: "swal2-animate-fade-up-out" },
@@ -101,9 +101,13 @@ function showPersistentToastIfAny() {
     let data = {};
     try {
       data = JSON.parse(raw) || {};
-    } catch { }
-    showToast(data.icon || "success", data.title || "Berhasil login", data.text || "");
-  } catch { }
+    } catch {}
+    showToast(
+      data.icon || "success",
+      data.title || "Berhasil login",
+      data.text || ""
+    );
+  } catch {}
 }
 
 // =========================
@@ -140,7 +144,7 @@ function handleIdleTimeout() {
         idleLogoutPending = false;
         try {
           window.location.replace("login.html");
-        } catch { }
+        } catch {}
       });
   }
 }
@@ -221,7 +225,7 @@ if (btnLogin) {
     try {
       await auth.signInWithEmailAndPassword(email, password);
     } catch (e) {
-      updateAuthStatus(e && e.message ? e.message : "Gagal login");
+      showToast("error", e && e.message ? e.message : "Gagal login");
     }
   });
 }
@@ -240,7 +244,7 @@ if (btnLogout) {
       if (!res.isConfirmed) return;
       await auth.signOut();
     } catch (e) {
-      updateAuthStatus(e && e.message ? e.message : "Gagal logout");
+      showToast("error", e && e.message ? e.message : "Gagal logout");
     }
   });
 }
@@ -251,7 +255,7 @@ if (btnLoginGoogle) {
     try {
       await auth.signInWithPopup(provider);
     } catch (e) {
-      updateAuthStatus(e && e.message ? e.message : "Gagal login Google");
+      showToast("error", e && e.message ? e.message : "Gagal login Google");
     }
   });
 }
@@ -261,11 +265,11 @@ if (btnSignup) {
     const email = loginEmail ? loginEmail.value : "";
     const password = loginPassword ? loginPassword.value : "";
     if (!email) {
-      updateAuthStatus("Email tidak boleh kosong");
+      showToast("warning", "Email tidak boleh kosong");
       return;
     }
     if (!password || password.length < 6) {
-      updateAuthStatus("Password minimal 6 karakter");
+      showToast("warning", "Password minimal 6 karakter");
       return;
     }
     try {
@@ -280,7 +284,7 @@ if (btnSignup) {
         msg = "Format email tidak valid";
       else if (e && e.code === "auth/weak-password")
         msg = "Password terlalu lemah (minimal 6 karakter)";
-      updateAuthStatus(msg);
+      showToast("error", msg);
     }
   });
 }
@@ -291,13 +295,13 @@ if (btnReset) {
     const email = loginEmail ? loginEmail.value : "";
     try {
       if (!email) {
-        updateAuthStatus("Masukkan email untuk reset password");
+        showToast("warning", "Masukkan email untuk reset password");
         return;
       }
       await auth.sendPasswordResetEmail(email);
-      updateAuthStatus("Tautan reset dikirim ke email");
+      showToast("success", "Tautan reset dikirim ke email");
     } catch (e) {
-      updateAuthStatus(e && e.message ? e.message : "Gagal mengirim reset");
+      showToast("error", e && e.message ? e.message : "Gagal mengirim reset");
     }
   });
 }
@@ -340,7 +344,7 @@ auth.onAuthStateChanged((user) => {
   if (!currentUser && !isLoginPage && !idleLogoutPending) {
     try {
       window.location.replace("login.html");
-    } catch { }
+    } catch {}
   }
   if (currentUser && isLoginPage) {
     try {
@@ -352,7 +356,7 @@ auth.onAuthStateChanged((user) => {
       };
       sessionStorage.setItem("postLoginToast", JSON.stringify(data));
       window.location.replace("index.html");
-    } catch { }
+    } catch {}
   }
 });
 
@@ -421,7 +425,7 @@ function loadDraftsRealtime() {
           activitiesContainer.querySelectorAll(".activity-item").length === 0
         ) {
           activitiesContainer.innerHTML =
-            '<div style="text-align:center;padding:16px;color:#777;">No Activities</div>';
+            '<div class="empty-state">No Activities</div>';
         }
       } else {
         const placeholder = Array.from(activitiesContainer.children).find(
@@ -458,8 +462,7 @@ async function loadHistoryForDate(dateStr) {
   // }
   historyContainer.innerHTML = "";
   if (!currentUser) {
-    historyContainer.innerHTML =
-      '<div style="text-align:center;padding:16px;color:#777;">Silakan login</div>';
+    historyContainer.innerHTML = '<div class="empty-state">Silakan login</div>';
     return;
   }
   if (btnHistoryMore) btnHistoryMore.style.display = "none";
@@ -473,7 +476,7 @@ async function loadHistoryForDate(dateStr) {
 
     if (snapshot.empty) {
       historyContainer.innerHTML =
-        '<div style="text-align:center;padding:16px;color:#777;">No Activities</div>';
+        '<div class="empty-state">No Activities</div>';
       return;
     }
     historyData = [];
@@ -483,12 +486,13 @@ async function loadHistoryForDate(dateStr) {
         ...doc.data(),
         started: true,
         finished: true,
+        jam_selesai: doc.data().jam_selesai || "", // Ensure jam_selesai exists
       });
     });
     renderHistoryList();
   } catch (err) {
     historyContainer.innerHTML =
-      '<div style="text-align:center;padding:16px;color:#c00;">Gagal memuat histori</div>';
+      '<div class="error-state">Gagal memuat histori</div>';
   }
 }
 
@@ -556,8 +560,7 @@ function renderHistoryList() {
 
   const slice = sorted.slice(0, historyTodayLimit);
   if (slice.length === 0) {
-    historyContainer.innerHTML =
-      '<div style="text-align:center;padding:16px;color:#777;">No Activities</div>';
+    historyContainer.innerHTML = '<div class="empty-state">No Activities</div>';
   } else {
     slice.forEach((d) => {
       renderActivitySummary(d, historyContainer);
@@ -710,7 +713,7 @@ if (historyDateInput) {
 if (btnMulai) {
   btnMulai.addEventListener("click", async () => {
     if (!currentUser) {
-      alert("Silakan login terlebih dahulu");
+      showToast("warning", "Silakan login terlebih dahulu");
       return;
     }
     const t = nowHM();
@@ -726,7 +729,7 @@ if (btnSelesai) {
   btnSelesai.addEventListener("click", () => {
     const start = document.getElementById("jam_mulai").value;
     if (!start) {
-      alert("Klik Mulai Tugas terlebih dahulu");
+      showToast("warning", "Klik Mulai Tugas terlebih dahulu");
       return;
     }
     const t = nowHM();
@@ -963,9 +966,9 @@ function renderActivity(d, container) {
       </div>
       <div class="form-group">
         <label>Waktu Selesai</label>
-        <input type="time" name="jam_selesai" class="form-control" style="width: 100%; padding: 8px; margin-bottom: 8px;" />
+        <input type="time" name="jam_selesai" class="form-control input-time-full" />
         <button type="button" class="btn-secondary" data-role="finish" disabled>Selesaikan</button>
-        <button type="button" class="btn-success" data-role="save_manual" style="display:none;">Simpan</button>
+        <button type="button" class="btn-success d-none" data-role="save_manual">Simpan</button>
       </div>
     </div>
     <div class="form-group">
@@ -974,7 +977,7 @@ function renderActivity(d, container) {
     </div>
     <div class="activity-actions">
       <span class="muted" data-role="status"></span>
-      <div style="flex: 1"></div>
+      <div class="flex-grow"></div>
       <button type="button" class="btn-danger btn-sm" data-role="delete" title="Delete Activity">
          <i class="fas fa-trash-alt"></i>
       </button>
@@ -1003,7 +1006,7 @@ function renderActivity(d, container) {
                 { merge: true }
               );
           }
-        } catch (e) { }
+        } catch (e) {}
       }
     }
     inInvCode.addEventListener("input", () => {
@@ -1109,20 +1112,22 @@ function renderActivitySummary(d, container) {
     </div>
     <div class="summary-times">
       <span>${d.jam_mulai || "-"}</span> - <span>${d.jam_selesai || "-"}</span>
-      <span class="summary-duration ${durClass}">${dur != null ? formatDuration(dur) : ""
-    }</span>
-      <span style="margin-left:8px;">${d.quality || ""}</span>
+      <span class="summary-duration ${durClass}">${
+    dur != null ? formatDuration(dur) : ""
+  }</span>
+      <span class="ml-2">${d.quality || ""}</span>
     </div>
     <div class="summary-remarks">${d.remarks || ""}</div>
     
     <div class="summary-id">Activity ID: ${activityId}</div>
-    ${d.tanggal === todayStr()
-      ? `<div class="summary-footer">
+    ${
+      d.tanggal === todayStr()
+        ? `<div class="summary-footer">
              <button type="button" class="btn-danger btn-sm" onclick="undoActivity('${d.id}')">
                <i class="fas fa-undo"></i> Undo
              </button>
            </div>`
-      : ""
+        : ""
     }
   `;
   (container || historyContainer).appendChild(el);
@@ -1138,7 +1143,7 @@ function getDurationClass(n) {
 let activityCounter = 0;
 async function addActivity() {
   if (!currentUser) {
-    alert("Silakan login terlebih dahulu");
+    showToast("warning", "Silakan login terlebih dahulu");
     return;
   }
   activityCounter += 1;
@@ -1167,11 +1172,13 @@ async function addActivity() {
       user_email: currentUser.email || "",
     });
   } catch (err) {
-    alert(
+    Swal.fire(
+      "Error",
       err && err.code === "permission-denied"
         ? "Akses ditolak oleh Firestore Rules saat menambahkan aktivitas."
         : "Gagal menambahkan aktivitas: " +
-        (err && err.message ? err.message : "Unknown error")
+            (err && err.message ? err.message : "Unknown error"),
+      "error"
     );
   }
 }
@@ -1217,7 +1224,7 @@ async function finishActivity(item, isManual = false) {
   const status = item.querySelector('[data-role="status"]');
   const t = nowHM();
   if (!inputMulai.value) {
-    alert("Klik Mulai terlebih dahulu");
+    showToast("warning", "Klik Mulai terlebih dahulu");
     return;
   }
 
@@ -1238,7 +1245,7 @@ async function finishActivity(item, isManual = false) {
     if (activeSnap.exists) {
       inv = (activeSnap.data().inv_code || "").toUpperCase();
     }
-  } catch (e) { }
+  } catch (e) {}
   if (!inv) {
     const invInputEl = document.getElementById("inv_code");
     inv = invInputEl && invInputEl.value ? invInputEl.value.toUpperCase() : "";
@@ -1254,7 +1261,11 @@ async function finishActivity(item, isManual = false) {
 
   const durasiMenit = calculateDuration(inputMulai.value, inputSelesai.value);
   if (durasiMenit < 0) {
-    alert("Jam selesai harus lebih besar dari jam mulai!");
+    Swal.fire(
+      "Error",
+      "Jam selesai harus lebih besar dari jam mulai!",
+      "error"
+    );
     return null;
   }
 
@@ -1281,7 +1292,7 @@ async function finishActivity(item, isManual = false) {
       await activeCol
         .doc(idForTimer)
         .set({ report_doc_id: docRef.id }, { merge: true });
-    } catch (e) { }
+    } catch (e) {}
 
     if (btnFinish) btnFinish.disabled = true;
     const btnStart = item.querySelector('[data-role="start"]');
@@ -1292,11 +1303,13 @@ async function finishActivity(item, isManual = false) {
 
     return { id: docRef.id, ...reportData };
   } catch (err) {
-    alert(
+    Swal.fire(
+      "Error",
       err && err.code === "permission-denied"
         ? "Akses ditolak oleh Firestore Rules saat menyimpan laporan selesai."
         : "Gagal menyimpan laporan: " +
-        (err && err.message ? err.message : "Unknown error")
+            (err && err.message ? err.message : "Unknown error"),
+      "error"
     );
     return null;
   }
@@ -1310,7 +1323,7 @@ if (activitiesContainer) {
     const item = btn.closest(".activity-item");
     if (!item) return;
     if (!currentUser) {
-      alert("Silakan login terlebih dahulu");
+      showToast("warning", "Silakan login terlebih dahulu");
       return;
     }
     const role = btn.getAttribute("data-role");
@@ -1331,14 +1344,20 @@ if (activitiesContainer) {
       try {
         stopActivityTimer(item);
         await activeCol.doc(id).delete();
-        showToast("success", "Aktivitas dihapus", "Aktivitas telah dihapus dari daftar Aktif");
+        showToast(
+          "success",
+          "Aktivitas dihapus",
+          "Aktivitas telah dihapus dari daftar Aktif"
+        );
         // Item will be removed automatically by onSnapshot listener
       } catch (err) {
-        alert(
+        Swal.fire(
+          "Error",
           err && err.code === "permission-denied"
             ? "Akses ditolak oleh Firestore Rules saat menghapus aktivitas."
             : "Gagal menghapus aktivitas: " +
-            (err && err.message ? err.message : "Unknown error")
+                (err && err.message ? err.message : "Unknown error"),
+          "error"
         );
       }
     }
@@ -1356,11 +1375,13 @@ if (activitiesContainer) {
           { merge: true }
         );
       } catch (err) {
-        alert(
+        Swal.fire(
+          "Error",
           err && err.code === "permission-denied"
             ? "Akses ditolak oleh Firestore Rules saat memulai aktivitas."
             : "Gagal memulai aktivitas: " +
-            (err && err.message ? err.message : "Unknown error")
+                (err && err.message ? err.message : "Unknown error"),
+          "error"
         );
       }
     }
@@ -1384,16 +1405,22 @@ if (activitiesContainer) {
           historyData.push(newReport);
           renderHistoryList();
         }
-        showToast("success", "Aktivitas diselesaikan", "Aktivitas dipindahkan ke Activities Done (Today)");
+        showToast(
+          "success",
+          "Aktivitas diselesaikan",
+          "Aktivitas dipindahkan ke Activities Done (Today)"
+        );
         if (item && item.parentElement) {
           item.remove();
         }
       } catch (err) {
-        alert(
+        Swal.fire(
+          "Error",
           err && err.code === "permission-denied"
             ? "Akses ditolak oleh Firestore Rules saat menandai selesai."
             : "Gagal menandai selesai: " +
-            (err && err.message ? err.message : "Unknown error")
+                (err && err.message ? err.message : "Unknown error"),
+          "error"
         );
       }
     }
@@ -1421,16 +1448,22 @@ if (activitiesContainer) {
             renderHistoryList();
           }
         }
-        showToast("success", "Aktivitas diselesaikan", "Aktivitas dipindahkan ke Activities Done (Today)");
+        showToast(
+          "success",
+          "Aktivitas diselesaikan",
+          "Aktivitas dipindahkan ke Activities Done (Today)"
+        );
         if (item && item.parentElement) {
           item.remove();
         }
       } catch (err) {
-        alert(
+        Swal.fire(
+          "Error",
           err && err.code === "permission-denied"
             ? "Akses ditolak oleh Firestore Rules saat menyimpan manual."
             : "Gagal menyimpan manual: " +
-            (err && err.message ? err.message : "Unknown error")
+                (err && err.message ? err.message : "Unknown error"),
+          "error"
         );
       }
     }
@@ -1526,7 +1559,7 @@ if (activitiesContainer) {
         err && err.code === "permission-denied"
           ? "Akses ditolak oleh Firestore Rules saat mengubah aktivitas."
           : "Gagal mengubah aktivitas: " +
-          (err && err.message ? err.message : "Unknown error")
+              (err && err.message ? err.message : "Unknown error")
       );
     }
   });
@@ -1544,7 +1577,7 @@ if (reportFormEl)
   reportFormEl.addEventListener("submit", async (e) => {
     e.preventDefault();
     if (!currentUser) {
-      alert("Silakan login terlebih dahulu");
+      showToast("warning", "Silakan login terlebih dahulu");
       return;
     }
 
@@ -1578,7 +1611,11 @@ if (reportFormEl)
         uid: currentUser.uid,
         user_email: currentUser.email || "",
       });
-      showToast("success", "Aktivitas Ditambahkan", "Aktivitas baru telah ditambahkan ke daftar Aktif");
+      showToast(
+        "success",
+        "Aktivitas Ditambahkan",
+        "Aktivitas baru telah ditambahkan ke daftar Aktif"
+      );
       e.target.reset();
 
       // Preserve checkbox state reset explicitly if needed, though reset() usually handles it
@@ -1599,12 +1636,12 @@ if (reportFormEl)
 // =========================
 async function exportExcel() {
   if (!currentUser) {
-    alert("Silakan login terlebih dahulu");
+    showToast("warning", "Silakan login terlebih dahulu");
     return;
   }
   const tgl = document.getElementById("exportTanggal").value;
   if (!tgl) {
-    alert("Pilih tanggal export!");
+    showToast("warning", "Pilih tanggal export!");
     return;
   }
   let snapshot;
@@ -1616,20 +1653,26 @@ async function exportExcel() {
       .get();
   } catch (err) {
     if (err && err.code === "permission-denied") {
-      alert(
-        "Akses ditolak oleh Firestore Rules. Izinkan read pada daily_reports."
+      Swal.fire(
+        "Akses Ditolak",
+        "Akses ditolak oleh Firestore Rules. Izinkan read pada daily_reports.",
+        "error"
       );
       return;
     }
     if (err && err.code === "failed-precondition") {
-      alert(
-        "Index belum dibuat untuk query uid+tanggal pada daily_reports. Buat index di Firestore."
+      Swal.fire(
+        "Index Missing",
+        "Index belum dibuat untuk query uid+tanggal pada daily_reports. Buat index di Firestore.",
+        "error"
       );
       return;
     }
-    alert(
+    Swal.fire(
+      "Error",
       "Gagal mengambil data: " +
-      (err && err.message ? err.message : "Unknown error")
+        (err && err.message ? err.message : "Unknown error"),
+      "error"
     );
     return;
   }
