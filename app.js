@@ -1044,7 +1044,7 @@ function renderActivity(d, container) {
 
     // Toggle buttons based on jam_selesai existence
     if (inputSelesai.value) {
-      if (btnFinish) btnFinish.style.display = "none";
+      if (btnFinish) btnFinish.style.display = "inline-block";
       if (btnSaveManual) btnSaveManual.style.display = "inline-block";
     } else {
       if (btnFinish) btnFinish.style.display = "inline-block";
@@ -1386,7 +1386,9 @@ if (activitiesContainer) {
       }
     }
     if (role === "finish") {
-      const newReport = await finishActivity(item, false); // Realtime sets jam_selesai = now
+      const hasManual =
+        !!item.querySelector('input[name="jam_selesai"]').value;
+      const newReport = await finishActivity(item, hasManual);
       if (!newReport) return; // Abort if validation failed
       try {
         await activeCol.doc(id).set(
@@ -1479,7 +1481,7 @@ if (activitiesContainer) {
       const id = item.dataset.id;
 
       if (val) {
-        if (btnFinish) btnFinish.style.display = "none";
+        if (btnFinish) btnFinish.style.display = "inline-block";
         if (btnSave) btnSave.style.display = "inline-block";
 
         // Stop real-time timer if exists
