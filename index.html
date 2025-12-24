@@ -21,27 +21,70 @@
   </head>
 
   <body>
-    <div class="container">
-      <div class="topbar">
-        <div class="brand">
-          <h1>Daily Report</h1>
-          <span class="subtitle"
-            >Record your Daily Activities or get Fired</span
-          >
-        </div>
-        <div class="user-actions">
-          <button
-            class="theme-toggle"
-            id="themeToggle"
-            title="Switch Theme"
-          ></button>
-          <div class="user-status" id="auth_status"></div>
-          <button type="button" class="btn-secondary" id="btn_logout">
-            Logout
-          </button>
+    <!-- Header / Navbar (Sticky & Full Width) -->
+    <div class="header-container">
+      <div class="container">
+        <div class="topbar">
+          <div class="brand">
+            <h1>Daily Report</h1>
+            <!-- Subtitle removed/hidden on mobile or kept simple -->
+          </div>
+          <div class="user-actions" id="userActions">
+            <div class="user-menu-items" id="userMenuItems">
+              <div class="user-status" id="auth_status"></div>
+              <button type="button" class="btn-secondary" id="btn_logout">
+                Logout
+              </button>
+            </div>
+            <button class="theme-toggle" id="themeToggle" title="Switch Theme">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <circle cx="12" cy="12" r="5"></circle>
+                <line x1="12" y1="1" x2="12" y2="3"></line>
+                <line x1="12" y1="21" x2="12" y2="23"></line>
+                <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                <line x1="1" y1="12" x2="3" y2="12"></line>
+                <line x1="21" y1="12" x2="23" y2="12"></line>
+                <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+              </svg>
+            </button>
+            <button
+              class="mobile-menu-btn"
+              id="mobileMenuBtn"
+              aria-label="Menu"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="24"
+                height="24"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <line x1="3" y1="12" x2="21" y2="12"></line>
+                <line x1="3" y1="6" x2="21" y2="6"></line>
+                <line x1="3" y1="18" x2="21" y2="18"></line>
+              </svg>
+            </button>
+          </div>
         </div>
       </div>
+    </div>
 
+    <!-- Main Content -->
+    <div class="main-container">
       <main class="content section-grid">
         <section class="card" id="card_input">
           <h2 class="card-title">Input Report</h2>
@@ -186,6 +229,8 @@
             </div>
           </div>
         </section>
+
+        <footer id="app_footer" class="app-footer"></footer>
       </main>
     </div>
 
@@ -196,7 +241,8 @@
           fetch("version.html")
             .then((r) => r.text())
             .then((html) => {
-              document.body.insertAdjacentHTML("beforeend", html);
+              const footer = document.getElementById("app_footer");
+              if (footer) footer.innerHTML = html;
             })
             .catch(() => {});
         } catch {}
