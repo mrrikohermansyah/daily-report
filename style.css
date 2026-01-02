@@ -388,7 +388,6 @@ button {
   align-items: center;
   justify-content: center;
   gap: 6px;
-  margin-top: 10px;
 }
 
 button:active {
@@ -751,6 +750,15 @@ input[type="time"]::-webkit-date-and-time-value {
     z-index: 2000;
   }
 
+  .user-status {
+    text-align: center;
+    padding: 4px 0 8px 0;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 8px;
+    word-break: break-word; /* Ensure long emails wrap */
+    display: block; /* Ensure it behaves as a block */
+  }
+
   .user-actions.expanded .user-menu-items {
     display: flex;
   }
@@ -772,4 +780,9 @@ input[type="time"]::-webkit-date-and-time-value {
   .brand h1 {
     font-size: 20px;
   }
+}
+
+/* Specific button styling */
+button[data-role="finish"] {
+  margin-top: 10px;
 }
