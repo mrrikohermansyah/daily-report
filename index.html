@@ -25,9 +25,12 @@
     <div class="header-container">
       <div class="container">
         <div class="topbar">
-          <div class="brand">
+          <div
+            class="brand"
+            style="flex-direction: column; align-items: flex-start; gap: 0"
+          >
             <h1>Daily Report</h1>
-            <!-- Subtitle removed/hidden on mobile or kept simple -->
+            <div id="version_container" style="margin-top: -5px"></div>
           </div>
           <div class="user-actions" id="userActions">
             <div class="user-menu-items" id="userMenuItems">
@@ -203,8 +206,12 @@
             </div>
           </div>
           <div id="history_activities"></div>
-          <div class="actions" style="justify-content: center;">
-            <button type="button" class="btn-secondary btn-block" id="btn_history_more">
+          <div class="actions" style="justify-content: center">
+            <button
+              type="button"
+              class="btn-secondary btn-block"
+              id="btn_history_more"
+            >
               LOAD MORE
             </button>
           </div>
@@ -241,8 +248,9 @@
           fetch("version.html")
             .then((r) => r.text())
             .then((html) => {
-              const footer = document.getElementById("app_footer");
-              if (footer) footer.innerHTML = html;
+              const versionContainer =
+                document.getElementById("version_container");
+              if (versionContainer) versionContainer.innerHTML = html;
             })
             .catch(() => {});
         } catch {}
