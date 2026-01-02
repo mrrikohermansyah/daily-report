@@ -178,6 +178,28 @@ h6 {
   align-items: center;
 }
 
+/* Fix for iOS Date Picker */
+input[type="date"] {
+  -webkit-appearance: none;
+  appearance: none;
+  display: block;
+  width: 100%;
+  padding: 10px;
+  min-height: 45px; /* iOS friendly touch target */
+  background-color: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  font-family: inherit;
+  font-size: 16px; /* Prevent zoom on focus in iOS */
+  color: var(--text);
+  line-height: 1.5;
+}
+
+/* Ensure text alignment is correct on iOS */
+input[type="date"]::-webkit-date-and-time-value {
+  text-align: left;
+}
+
 .theme-toggle {
   background: var(--secondary);
   border: none;
