@@ -1192,11 +1192,24 @@ function getDurationClass(n) {
 }
 
 let activityCounter = 0;
+let isAddingActivity = false;
+
 async function addActivity() {
+  if (isAddingActivity) return;
+
   if (!currentUser) {
     showToast("warning", "Silakan login terlebih dahulu");
     return;
   }
+
+  const btnAdd = document.getElementById("btn_add_activity");
+  const originalText = btnAdd ? btnAdd.innerText : "";
+  if (btnAdd) {
+    btnAdd.disabled = true;
+    btnAdd.innerText = "Adding...";
+  }
+  isAddingActivity = true;
+
   activityCounter += 1;
   const t = new Date();
   const tanggal = `${t.getFullYear()}-${pad(t.getMonth() + 1)}-${pad(
@@ -1204,8 +1217,12 @@ async function addActivity() {
   )}`;
   const bulan = tanggal.slice(0, 7);
   const inv = (document.getElementById("inv_code").value || "").toUpperCase();
+
   try {
-    await activeCol.add({
+    // Unique ID for draft
+    const uniqueId = `${currentUser.uid}_draft_${Date.now()}`;
+
+    await activeCol.doc(uniqueId).set({
       tanggal,
       bulan,
       inv_code: inv,
@@ -1231,6 +1248,12 @@ async function addActivity() {
             (err && err.message ? err.message : "Unknown error"),
       "error"
     );
+  } finally {
+    isAddingActivity = false;
+    if (btnAdd) {
+      btnAdd.disabled = false;
+      btnAdd.innerText = originalText;
+    }
   }
 }
 
@@ -1316,6 +1339,9 @@ async function finishActivity(item, isManual = false) {
     return null;
   }
 
+  // Disable button immediately to prevent double clicks
+  if (btnFinish) btnFinish.disabled = true;
+
   const reportData = {
     tanggal,
     bulan,
@@ -1334,22 +1360,27 @@ async function finishActivity(item, isManual = false) {
   };
 
   try {
-    const docRef = await db.collection("daily_reports").add(reportData);
+    // Use .set() with the Draft ID to prevent duplicates in History
+    await db.collection("daily_reports").doc(idForTimer).set(reportData);
+
     try {
       await activeCol
         .doc(idForTimer)
-        .set({ report_doc_id: docRef.id }, { merge: true });
+        .set({ report_doc_id: idForTimer }, { merge: true });
     } catch (e) {}
 
-    if (btnFinish) btnFinish.disabled = true;
+    // if (btnFinish) btnFinish.disabled = true; // Already disabled above
     const btnStart = item.querySelector('[data-role="start"]');
     if (btnStart) btnStart.disabled = true;
     const timer = item.querySelector('[data-role="timer"]');
     if (timer) timer.textContent = "00:00:00";
     if (status) status.textContent = "Finished";
 
-    return { id: docRef.id, ...reportData };
+    return { id: idForTimer, ...reportData };
   } catch (err) {
+    // Re-enable button if error occurs
+    if (btnFinish) btnFinish.disabled = false;
+
     Swal.fire(
       "Error",
       err && err.code === "permission-denied"
@@ -1629,13 +1660,28 @@ if (activitiesContainer) {
 // SIMPAN DATA
 // =========================
 const reportFormEl = document.getElementById("reportForm");
+let isReportFormSubmitting = false;
+
 if (reportFormEl)
   reportFormEl.addEventListener("submit", async (e) => {
     e.preventDefault();
+
+    // 1. Prevent Double Submit Check
+    if (isReportFormSubmitting) return;
+
     if (!currentUser) {
       showToast("warning", "Silakan login terlebih dahulu");
       return;
     }
+
+    // 2. Disable Button & Show Loading
+    const btnSubmit = reportFormEl.querySelector('button[type="submit"]');
+    const originalBtnText = btnSubmit ? btnSubmit.innerText : "Submit";
+    if (btnSubmit) {
+      btnSubmit.disabled = true;
+      btnSubmit.innerText = "Submitting...";
+    }
+    isReportFormSubmitting = true;
 
     const tanggal = todayStr();
     const bulan = tanggal.slice(0, 7);
@@ -1650,7 +1696,10 @@ if (reportFormEl)
     ).map((cb) => cb.value);
     const jm = nowHM();
     try {
-      await activeCol.add({
+      // 3. Unique ID Generation (UserId + Timestamp)
+      const uniqueId = `${currentUser.uid}_${Date.now()}`;
+
+      await activeCol.doc(uniqueId).set({
         tanggal,
         bulan,
         inv_code: inv,
@@ -1667,14 +1716,13 @@ if (reportFormEl)
         uid: currentUser.uid,
         user_email: currentUser.email || "",
       });
+
       showToast(
         "success",
         "Activity added",
         "New activity has been added to Active List"
       );
       e.target.reset();
-
-      // Preserve checkbox state reset explicitly if needed, though reset() usually handles it
     } catch (err) {
       Swal.fire({
         icon: "error",
@@ -1684,6 +1732,13 @@ if (reportFormEl)
             ? err.message
             : "An error occurred while adding the activity",
       });
+    } finally {
+      // 4. Reset Button State
+      isReportFormSubmitting = false;
+      if (btnSubmit) {
+        btnSubmit.disabled = false;
+        btnSubmit.innerText = originalBtnText;
+      }
     }
   });
 
