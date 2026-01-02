@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>iOS Time Input Test</title>
+<style>
+  :root {
+    --surface: #ffffff;
+    --border: #dddfe2;
+    --radius: 8px;
+    --text: #050505;
+    --surface-2: #f0f2f5;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: sans-serif; padding: 20px; background: #f0f2f5; }
+
+  /* Generic Form Control (simulating existing conflict) */
+  .form-control, input[type="time"] {
+    width: 100%;
+    padding: 12px 14px;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    background: var(--surface-2);
+    color: var(--text);
+    font-size: 15px; /* Problematic on iOS */
+  }
+
+  /* Container structure from app */
+  .form-row { display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 20px; }
+  .form-group { flex: 1; min-width: 140px; }
+  label { display: block; margin-bottom: 6px; font-weight: 500; }
+
+  /* THE FIX (simulating what we added at the end of style.css) */
+  input[type="date"],
+  input[type="time"] {
+    -webkit-appearance: none;
+    appearance: none;
+    display: block;
+    width: 100%;
+    max-width: 100%; /* Prevent overflow */
+    padding: 10px;
+    min-height: 45px;
+    background-color: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    font-family: inherit;
+    font-size: 16px; /* Prevent zoom */
+    color: var(--text);
+    line-height: 1.5;
+    box-sizing: border-box;
+  }
+
+  /* Alignment fix */
+  input[type="date"]::-webkit-date-and-time-value,
+  input[type="time"]::-webkit-date-and-time-value {
+    text-align: left;
+  }
+</style>
+</head>
+<body>
+
+  <h2>iOS Input Time Test</h2>
+  <p>Open this file on your iPhone to verify the fix.</p>
+
+  <div class="form-row">
+    <div class="form-group">
+      <label>Start Time</label>
+      <input type="time" value="08:00" />
+    </div>
+    <div class="form-group">
+      <label>End Time</label>
+      <input type="time" value="17:00" />
+    </div>
+  </div>
+
+  <div style="width: 200px; border: 1px solid red; padding: 10px;">
+    <label>Restricted Width Container</label>
+    <input type="time" />
+  </div>
+
+</body>
+</html>
