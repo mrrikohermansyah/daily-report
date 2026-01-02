@@ -441,13 +441,10 @@ function loadDraftsRealtime() {
           }
 
           // Animation handling
-          if (!el.classList.contains("sucked-into-trash")) {
-            el.classList.add("sucked-into-trash");
-          }
+          if (!el.classList.contains("fade-out")) {
+            el.classList.add("fade-out");
 
-          el.addEventListener(
-            "animationend",
-            () => {
+            setTimeout(() => {
               el.remove();
               // Check empty state after removal
               if (
@@ -457,9 +454,8 @@ function loadDraftsRealtime() {
                 activitiesContainer.innerHTML =
                   '<div class="empty-state">No Activities</div>';
               }
-            },
-            { once: true }
-          );
+            }, 500);
+          }
         }
       });
 
@@ -1427,16 +1423,43 @@ if (activitiesContainer) {
 
       if (!result.isConfirmed) return;
 
+      // 1. Disable button to prevent double click
+      btn.disabled = true;
+      const originalHtml = btn.innerHTML;
+      btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+
       try {
         stopActivityTimer(item);
+
+        // 2. Wait for Firestore deletion
         await activeCol.doc(id).delete();
+
+        // 3. UI Feedback & Animation
         showToast(
           "success",
           "Activity deleted",
           "Activity has been removed from Active List"
         );
-        // Item will be removed automatically by onSnapshot listener
+
+        // Add fade-out class
+        item.classList.add("fade-out");
+
+        // 4. Remove element after animation
+        setTimeout(() => {
+          item.remove();
+          // Check empty state
+          if (
+            activitiesContainer.querySelectorAll(".activity-item").length === 0
+          ) {
+            activitiesContainer.innerHTML =
+              '<div class="empty-state">No Activities</div>';
+          }
+        }, 500); // Matches CSS transition duration
       } catch (err) {
+        // Re-enable button on error
+        btn.disabled = false;
+        btn.innerHTML = originalHtml;
+
         Swal.fire(
           "Error",
           err && err.code === "permission-denied"
