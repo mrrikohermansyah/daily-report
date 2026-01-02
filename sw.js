@@ -1,4 +1,4 @@
-const CACHE_NAME = "daily-report-v3";
+const CACHE_NAME = "daily-report-v4";
 const ASSETS_TO_CACHE = [
   "./",
   "./index.html",
@@ -8,6 +8,14 @@ const ASSETS_TO_CACHE = [
   "./logo.png",
   "./manifest.json",
   "./version.html",
+  "https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css",
+  "https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js",
+  "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js",
+  "https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js",
+  "https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js",
+  "https://cdn.jsdelivr.net/npm/sweetalert2@11",
+  "https://cdn.jsdelivr.net/npm/exceljs/dist/exceljs.min.js",
+  "https://cdn.jsdelivr.net/npm/file-saver@2.0.5/dist/FileSaver.min.js",
 ];
 
 // Install event: Cache assets

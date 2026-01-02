@@ -14,51 +14,98 @@
 
   <body>
     <div class="container">
-      <div style="position: absolute; top: 20px; right: 20px; z-index: 10">
-        <button
-          class="theme-toggle"
-          id="themeToggle"
-          title="Switch Theme"
-        ></button>
+      <div style="position: absolute; top: 20px; right: 20px; z-index: 100">
+        <button class="theme-toggle" id="themeToggle" title="Switch Theme">
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+          </svg>
+        </button>
       </div>
-      <main class="content login-grid">
-        <section class="brand-fb">
-          <h1>DailyReport</h1>
-          <div class="tagline">
-            Record Your Activities. Or Get
-            <span style="color: red">Fired</span>!
+      <main class="login-grid">
+        <div class="login-left">
+          <h1 class="login-brand-large">DailyReport</h1>
+          <div class="login-subtitle">
+            Record your daily activities efficiently.
+            <br />Don't get <span style="color: var(--danger)">fired</span>.
           </div>
-        </section>
-        <section class="login-card">
-          <form class="form" id="loginForm" onsubmit="return false;">
-            <div class="form-group">
-              <label for="loginEmail">Email</label>
-              <input type="email" id="loginEmail" />
-            </div>
-            <div class="form-group">
-              <label for="loginPassword">Password</label>
-              <input type="password" id="loginPassword" />
-            </div>
-            <div class="actions" style="justify-content: flex-start">
-              <button type="button" class="btn-primary" id="btn_login">
-                Masuk
+        </div>
+        <div class="login-right">
+          <div class="login-card">
+            <form class="form" id="loginForm" onsubmit="return false;">
+              <div class="form-group">
+                <input
+                  type="email"
+                  id="loginEmail"
+                  placeholder="Email or Phone Number"
+                  class="form-control btn-lg"
+                  style="font-size: 16px"
+                />
+              </div>
+              <div class="form-group">
+                <input
+                  type="password"
+                  id="loginPassword"
+                  placeholder="Password"
+                  class="form-control btn-lg"
+                  style="font-size: 16px"
+                />
+              </div>
+              <div class="actions">
+                <button
+                  type="button"
+                  class="btn-primary btn-block btn-lg"
+                  id="btn_login"
+                >
+                  Log In
+                </button>
+              </div>
+              <div class="divider"></div>
+              <div style="margin-bottom: 12px">
+                <a href="#" class="link-reset" id="btn_reset"
+                  >Forgot Password?</a
+                >
+              </div>
+              <div style="text-align: center">
+                <button
+                  type="button"
+                  class="btn-success create-account-btn"
+                  id="btn_signup"
+                >
+                  Create New Account
+                </button>
+              </div>
+              <div
+                style="margin-top: 10px; text-align: center"
+                class="muted"
+                id="auth_status"
+              ></div>
+            </form>
+            <div style="margin-top: 10px">
+              <button
+                type="button"
+                class="btn-secondary btn-sm"
+                id="btn_login_google"
+              >
+                <i class="fab fa-google"></i> Login with Google
               </button>
-              <button type="button" class="btn-secondary" id="btn_login_google">
-                Masuk dengan Google
-              </button>
             </div>
-            <a href="#" class="link-reset" id="btn_reset">Lupa kata sandi?</a>
-            <div class="actions" style="justify-content: flex-start">
-              <button type="button" class="btn-success" id="btn_signup">
-                Buat Akun Baru
-              </button>
-            </div>
-            <div class="muted" id="auth_status"></div>
-          </form>
-        </section>
+          </div>
+          <div style="margin-top: 24px; font-size: 14px; text-align: center">
+            <strong>Create a Page</strong> for a celebrity, brand or business.
+          </div>
+        </div>
       </main>
     </div>
 
+    <div id="version-container" class="version-container"></div>
     <script src="app.js"></script>
     <script>
       // Redirect ke index setelah login diproses oleh app.js
@@ -70,7 +117,8 @@
           fetch("version.html")
             .then((r) => r.text())
             .then((html) => {
-              document.body.insertAdjacentHTML("beforeend", html);
+              const container = document.getElementById("version-container");
+              if (container) container.innerHTML = html;
             })
             .catch(() => {});
         } catch {}
