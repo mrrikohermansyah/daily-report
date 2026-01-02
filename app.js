@@ -893,6 +893,7 @@ function updateActivityElement(el, d) {
 
   const labelMulai = el.querySelector('[data-role="label_mulai"]');
   const inputMulai = el.querySelector('input[name="jam_mulai"]');
+  const btnEditMulai = el.querySelector('[data-role="edit_mulai"]');
   const inputSelesai = el.querySelector('input[name="jam_selesai"]');
   const btnStart = el.querySelector('[data-role="start"]');
   const btnFinish = el.querySelector('[data-role="finish"]');
@@ -902,6 +903,7 @@ function updateActivityElement(el, d) {
     if (inputMulai && document.activeElement !== inputMulai)
       inputMulai.value = d.jam_mulai;
     if (labelMulai) labelMulai.textContent = d.jam_mulai;
+    if (btnEditMulai) btnEditMulai.style.display = "inline-block";
   }
   if (d.jam_selesai) {
     if (inputSelesai && document.activeElement !== inputSelesai)
@@ -1007,7 +1009,12 @@ function renderActivity(d, container, shouldAnimate = false) {
     <div class="form-row">
       <div class="form-group">
         <label>Waktu Mulai</label>
-        <div class="time-display" data-role="label_mulai">Not Started</div>
+        <div class="time-container">
+          <div class="time-display" data-role="label_mulai">Not Started</div>
+          <button type="button" class="btn-edit-time" data-role="edit_mulai" title="Edit Time" style="display: none;">
+             <i class="fas fa-pencil-alt"></i>
+          </button>
+        </div>
         <input type="hidden" name="jam_mulai" />
         <button type="button" class="btn-secondary" data-role="start">Start</button>
       </div>
@@ -1077,6 +1084,7 @@ function renderActivity(d, container, shouldAnimate = false) {
   }
   const labelMulai = el.querySelector('[data-role="label_mulai"]');
   const inputMulai = el.querySelector('input[name="jam_mulai"]');
+  const btnEditMulai = el.querySelector('[data-role="edit_mulai"]');
   const inputSelesai = el.querySelector('input[name="jam_selesai"]');
   const btnStart = el.querySelector('[data-role="start"]');
   const btnFinish = el.querySelector('[data-role="finish"]');
@@ -1085,6 +1093,7 @@ function renderActivity(d, container, shouldAnimate = false) {
   if (d.jam_mulai) {
     inputMulai.value = d.jam_mulai;
     if (labelMulai) labelMulai.textContent = d.jam_mulai;
+    if (btnEditMulai) btnEditMulai.style.display = "inline-block";
   }
   if (d.jam_selesai) {
     inputSelesai.value = d.jam_selesai;
@@ -1468,6 +1477,57 @@ if (activitiesContainer) {
                 (err && err.message ? err.message : "Unknown error"),
           "error"
         );
+      }
+    }
+    if (role === "edit_mulai") {
+      const inputMulai = item.querySelector('input[name="jam_mulai"]');
+      const currentVal = inputMulai ? inputMulai.value : "";
+
+      const { value: newTime } = await Swal.fire({
+        title: "Edit Start Time",
+        html: `
+          <div style="display: flex; justify-content: center; margin: 10px 0;">
+             <input type="time" id="swal-input-time" class="swal2-input" value="${currentVal}" style="max-width: 200px;">
+          </div>
+        `,
+        focusConfirm: false,
+        showCancelButton: true,
+        confirmButtonText: "Save",
+        cancelButtonText: "Cancel",
+        preConfirm: () => {
+          return document.getElementById("swal-input-time").value;
+        },
+      });
+
+      if (newTime && newTime !== currentVal) {
+        try {
+          const updates = { jam_mulai: newTime };
+
+          // Try to update startMs if possible to sync timer
+          if (newTime) {
+            const now = new Date();
+            const [h, m] = newTime.split(":").map(Number);
+            const newStartMs = new Date(
+              now.getFullYear(),
+              now.getMonth(),
+              now.getDate(),
+              h,
+              m,
+              0
+            ).getTime();
+            updates.startMs = newStartMs;
+          }
+
+          await activeCol.doc(id).set(updates, { merge: true });
+
+          // UI updates will be handled by onSnapshot listener (updateActivityElement)
+          // But we can update locally for immediate feedback
+          if (inputMulai) inputMulai.value = newTime;
+          const label = item.querySelector('[data-role="label_mulai"]');
+          if (label) label.textContent = newTime;
+        } catch (err) {
+          Swal.fire("Error", "Failed to update time: " + err.message, "error");
+        }
       }
     }
     if (role === "start") {
