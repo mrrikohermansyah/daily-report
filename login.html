@@ -34,12 +34,21 @@
           <h1 class="login-brand-large">DailyReport</h1>
           <div class="login-subtitle">
             Record your daily activities efficiently.
-            <br />Don't get <span style="color: var(--danger)">fired</span>.
+            <br />Don't get <span style="color: var(--danger)">PECAT!</span>.
           </div>
         </div>
         <div class="login-right">
           <div class="login-card">
             <form class="form" id="loginForm" onsubmit="return false;">
+              <div class="form-group">
+                <input
+                  type="text"
+                  id="loginName"
+                  placeholder="Your Name"
+                  class="form-control btn-lg"
+                  style="font-size: 16px; display: none"
+                />
+              </div>
               <div class="form-group">
                 <input
                   type="email"

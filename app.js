@@ -221,6 +221,7 @@ let historyTodayLimit = 5;
 const activityTimers = {};
 const activeCol = db.collection("daily_reports_active");
 const exportDateInput = document.getElementById("exportTanggal");
+const loginName = document.getElementById("loginName");
 const loginEmail = document.getElementById("loginEmail");
 const loginPassword = document.getElementById("loginPassword");
 const btnLogin = document.getElementById("btn_login");
@@ -281,6 +282,18 @@ if (btnLoginGoogle) {
 
 if (btnSignup) {
   btnSignup.addEventListener("click", async () => {
+    if (loginName) {
+      if (loginName.style.display === "none") {
+        loginName.style.display = "block";
+        loginName.focus();
+        return;
+      }
+      const nameValue = loginName.value.trim();
+      if (!nameValue) {
+        showToast("warning", "Please enter your name to create account");
+        return;
+      }
+    }
     const email = loginEmail ? loginEmail.value : "";
     const password = loginPassword ? loginPassword.value : "";
     if (!email) {
@@ -292,14 +305,58 @@ if (btnSignup) {
       return;
     }
     try {
-      await auth.createUserWithEmailAndPassword(email, password);
+      const cred = await auth.createUserWithEmailAndPassword(email, password);
+      if (cred && cred.user && loginName) {
+        const nameValue = loginName.value.trim();
+        if (nameValue) {
+          try {
+            await cred.user.updateProfile({ displayName: nameValue });
+          } catch (e) {}
+        }
+      }
     } catch (e) {
       let msg = e && e.message ? e.message : "Failed to create account";
       if (e && e.code === "auth/operation-not-allowed")
         msg = "Email/Password sign-in method not enabled in Firebase Console";
-      else if (e && e.code === "auth/email-already-in-use")
+      else if (e && e.code === "auth/email-already-in-use") {
+        if (loginName) {
+          const nameValue = loginName.value.trim();
+          if (nameValue) {
+            try {
+              const signInCred = await auth.signInWithEmailAndPassword(
+                email,
+                password
+              );
+              if (
+                signInCred &&
+                signInCred.user &&
+                !signInCred.user.displayName
+              ) {
+                try {
+                  await signInCred.user.updateProfile({
+                    displayName: nameValue,
+                  });
+                  showToast(
+                    "success",
+                    "Name has been added to your existing account"
+                  );
+                  return;
+                } catch (updateErr) {}
+              }
+            } catch (signInErr) {
+              if (signInErr && signInErr.code === "auth/wrong-password") {
+                msg =
+                  "Email already registered. Please enter the correct password to update name.";
+              } else {
+                msg = "Email already registered";
+              }
+              showToast("error", msg);
+              return;
+            }
+          }
+        }
         msg = "Email already registered";
-      else if (e && e.code === "auth/invalid-email")
+      } else if (e && e.code === "auth/invalid-email")
         msg = "Invalid email format";
       else if (e && e.code === "auth/weak-password")
         msg = "Password too weak (min 6 chars)";
@@ -352,7 +409,9 @@ function setUIAuthState() {
 auth.onAuthStateChanged((user) => {
   currentUser = user || null;
   if (currentUser) {
-    updateAuthStatus(`Login as ${currentUser.email || currentUser.uid}`);
+    const nameOrEmail =
+      currentUser.displayName || currentUser.email || currentUser.uid;
+    updateAuthStatus(`Login as ${nameOrEmail}`);
     resetIdleTimer(); // Start idle timer on login
   } else {
     updateAuthStatus("");
