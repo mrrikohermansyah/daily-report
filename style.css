@@ -485,16 +485,22 @@ button:active {
   padding: 16px;
   margin-bottom: 16px;
   animation: slideDown 0.3s ease-out;
+  /* Enable smooth collapse on delete */
+  max-height: 1000px;
+  overflow: hidden;
+  transition: opacity 0.35s ease, transform 0.35s ease, max-height 0.45s ease,
+    margin 0.45s ease, padding 0.45s ease;
 }
 
 .fade-out {
   opacity: 0;
-  transform: scale(0.9);
-  height: 0;
+  transform: scale(0.98);
+  max-height: 0;
   margin: 0;
   padding: 0;
   overflow: hidden;
-  transition: all 0.5s ease;
+  transition: opacity 0.35s ease, transform 0.35s ease, max-height 0.45s ease,
+    margin 0.45s ease, padding 0.45s ease;
 }
 
 @keyframes slideDown {
