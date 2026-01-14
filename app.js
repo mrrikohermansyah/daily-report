@@ -733,7 +733,7 @@ async function undoActivity(historyId) {
       // Update jadi belum finish
       await activeCol.doc(activeDoc.id).update({
         finished: false,
-        jam_selesai: firebase.firestore.FieldValue.delete(),
+        // jam_selesai: firebase.firestore.FieldValue.delete(), // Keep existing jam_selesai
         report_doc_id: firebase.firestore.FieldValue.delete(),
       });
     } else {
@@ -746,7 +746,7 @@ async function undoActivity(historyId) {
         // set status active
         newData.finished = false;
         newData.started = true;
-        newData.jam_selesai = "";
+        // newData.jam_selesai = ""; // Keep jam_selesai from history
         // pastikan uid
         if (!newData.uid && currentUser) newData.uid = currentUser.uid;
 
@@ -1013,7 +1013,7 @@ function updateActivityElement(el, d) {
 
     // Toggle buttons based on jam_selesai existence
     if (inputSelesai && inputSelesai.value) {
-      if (btnFinish) btnFinish.style.display = "none";
+      if (btnFinish) btnFinish.style.display = "inline-block";
       if (btnSaveManual) btnSaveManual.style.display = "inline-block";
     } else {
       if (btnFinish) btnFinish.style.display = "inline-block";
@@ -1043,7 +1043,20 @@ function updateActivityElement(el, d) {
 
   // Timer logic
   const id = d.id;
-  if (d.startMs && !d.finished) {
+  if (d.jam_mulai && d.jam_selesai) {
+    const mins = calculateDuration(d.jam_mulai, d.jam_selesai);
+    const timer = el.querySelector('[data-role="timer"]');
+    if (mins >= 0 && timer) {
+      const ms = mins * 60 * 1000;
+      timer.textContent = formatHMS(ms);
+    }
+    // Ensure timer interval is stopped
+    if (activityTimers[id]) {
+      if (activityTimers[id].interval)
+        clearInterval(activityTimers[id].interval);
+      delete activityTimers[id];
+    }
+  } else if (d.startMs && !d.finished) {
     if (!activityTimers[id]) {
       activityTimers[id] = { startMs: d.startMs, interval: null };
       const timer = el.querySelector('[data-role="timer"]');
@@ -1253,7 +1266,14 @@ function renderActivity(d, container, shouldAnimate = false) {
     if (btnFinish) btnFinish.disabled = true;
     if (btnSaveManual) btnSaveManual.style.display = "none";
   }
-  if (d.startMs && !d.finished) {
+  if (d.jam_mulai && d.jam_selesai) {
+    const mins = calculateDuration(d.jam_mulai, d.jam_selesai);
+    const timer = el.querySelector('[data-role="timer"]');
+    if (mins >= 0 && timer) {
+      const ms = mins * 60 * 1000;
+      timer.textContent = formatHMS(ms);
+    }
+  } else if (d.startMs && !d.finished) {
     const id = d.id;
     activityTimers[id] = { startMs: d.startMs, interval: null };
     const timer = el.querySelector('[data-role="timer"]');
@@ -1816,29 +1836,45 @@ if (activitiesContainer) {
         if (btnFinish) btnFinish.style.display = "inline-block";
         if (btnSave) btnSave.style.display = "none";
 
-        // Restart real-time timer
-        // We need to fetch startMs from Firestore or reconstruct it.
-        // Since we don't have startMs easily here, we can rely on updateActivityElement
-        // which sets up the timer if startMs exists in the data.
-        // Or simpler: check if we have a timer running for this ID, if not start it?
-        // But startMs is needed.
-        // Let's rely on the fact that the data in Firestore (startMs) hasn't changed.
-        // We just need to restart the interval using the original startMs.
-        // However, 'd' is not available here. We can assume the item has data-id.
-        // We can check activityTimers[id].
-
-        // Better approach: Let's re-fetch or re-trigger the timer logic.
-        // Since we stopped it, we need to restart it.
-        // But we need 'startMs'. We can't get it from DOM easily unless stored.
-        // Wait, 'activityTimers[id]' might still have startMs if we only cleared interval.
-
-        if (activityTimers[id] && activityTimers[id].startMs) {
-          const update = () => {
-            const diff = Date.now() - activityTimers[id].startMs;
-            if (timer) timer.textContent = formatHMS(diff);
-          };
-          update();
-          activityTimers[id].interval = setInterval(update, 1000);
+        stopActivityTimer(item);
+        let startMs = null;
+        if (inputMulai && inputMulai.value) {
+          const now = new Date();
+          const parts = inputMulai.value.split(":");
+          if (parts.length >= 2) {
+            const h = Number(parts[0]);
+            const m = Number(parts[1]);
+            if (!Number.isNaN(h) && !Number.isNaN(m)) {
+              startMs = new Date(
+                now.getFullYear(),
+                now.getMonth(),
+                now.getDate(),
+                h,
+                m,
+                0
+              ).getTime();
+              activityTimers[id] = { startMs, interval: null };
+              const update = () => {
+                const diff = Date.now() - activityTimers[id].startMs;
+                if (timer) timer.textContent = formatHMS(diff);
+              };
+              update();
+              activityTimers[id].interval = setInterval(update, 1000);
+            }
+          }
+        }
+        if (startMs && currentUser) {
+          try {
+            await activeCol.doc(id).set(
+              {
+                jam_selesai: firebase.firestore.FieldValue.delete(),
+                finished: false,
+                startMs,
+                uid: currentUser.uid,
+              },
+              { merge: true }
+            );
+          } catch (err) {}
         }
       }
     }
