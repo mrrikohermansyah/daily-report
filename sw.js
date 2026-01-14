@@ -1,4 +1,4 @@
-const CACHE_NAME = "daily-report-v5";
+const CACHE_NAME = "daily-report-v7";
 const ASSETS_TO_CACHE = [
   "./",
   "./index.html",
@@ -6,6 +6,9 @@ const ASSETS_TO_CACHE = [
   "./style.css",
   "./app.js",
   "./logo.png",
+  "./logo-192.png",
+  "./logo-512.png",
+  "./logo-180.png",
   "./manifest.json",
   "./version.html",
   "https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css",
