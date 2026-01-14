@@ -80,6 +80,38 @@ document.addEventListener("DOMContentLoaded", () => {
       }
     });
   }
+
+  const lokasiSelect = document.getElementById("lokasi");
+  const lokasiOtherGroup = document.getElementById("lokasi_other_group");
+  const lokasiOtherInput = document.getElementById("lokasi_other");
+
+  const updateLokasiOtherVisibility = () => {
+    if (!lokasiSelect || !lokasiOtherGroup || !lokasiOtherInput) return;
+    if (lokasiSelect.value === "Lainlain") {
+      lokasiOtherGroup.style.display = "";
+      lokasiOtherInput.required = true;
+      lokasiOtherInput.focus();
+    } else {
+      lokasiOtherGroup.style.display = "none";
+      lokasiOtherInput.required = false;
+    }
+  };
+
+  if (lokasiSelect) {
+    updateLokasiOtherVisibility();
+    lokasiSelect.addEventListener("change", updateLokasiOtherVisibility);
+  }
+
+  if (lokasiOtherInput) {
+    lokasiOtherInput.addEventListener("input", () => {
+      const s = lokasiOtherInput.selectionStart;
+      const e = lokasiOtherInput.selectionEnd;
+      const v = lokasiOtherInput.value.toLowerCase();
+      const formatted = v.replace(/(^|\s)\S/g, (c) => c.toUpperCase());
+      lokasiOtherInput.value = formatted;
+      if (s != null && e != null) lokasiOtherInput.setSelectionRange(s, e);
+    });
+  }
 });
 
 // Set Auth Persistence to SESSION (logout on tab close)
@@ -936,6 +968,12 @@ function updateActivityElement(el, d) {
   };
 
   updateSelect('select[name="lokasi"]', d.lokasi);
+  const lokasiOtherInput = el.querySelector('input[name="lokasi_other"]');
+  if (lokasiOtherInput && document.activeElement !== lokasiOtherInput) {
+    lokasiOtherInput.value =
+      d.lokasi === "Lainlain" ? d.lokasi_custom || "" : "";
+    lokasiOtherInput.style.display = d.lokasi === "Lainlain" ? "" : "none";
+  }
   updateInput('input[name="pengguna"]', d.pengguna);
   updateInput('textarea[name="remarks"]', d.remarks);
   updateSelect('select[name="quality"]', d.quality || "Finish");
@@ -1049,6 +1087,12 @@ function renderActivity(d, container, shouldAnimate = false) {
       <div class="form-group">
         <label>Lokasi</label>
         <select name="lokasi">${buildLocationOptions()}</select>
+        <input
+          type="text"
+          name="lokasi_other"
+          placeholder="Other location"
+          style="display: none; margin-top: 4px"
+        />
       </div>
       <div class="form-group">
         <label>Pengguna</label>
@@ -1103,10 +1147,32 @@ function renderActivity(d, container, shouldAnimate = false) {
   `;
   (container || activitiesContainer).appendChild(el);
   const selLokasi = el.querySelector('select[name="lokasi"]');
+  const inLokasiOther = el.querySelector('input[name="lokasi_other"]');
   const inInvCode = el.querySelector('input[name="item_inv_code"]');
   const inPengguna = el.querySelector('input[name="pengguna"]');
   const taRemarks = el.querySelector('textarea[name="remarks"]');
   const selQuality = el.querySelector('select[name="quality"]');
+  if (inLokasiOther) {
+    inLokasiOther.addEventListener("input", () => {
+      const s = inLokasiOther.selectionStart;
+      const e = inLokasiOther.selectionEnd;
+      const v = inLokasiOther.value.toLowerCase();
+      const formatted = v.replace(/(^|\s)\S/g, (c) => c.toUpperCase());
+      inLokasiOther.value = formatted;
+      if (s != null && e != null) inLokasiOther.setSelectionRange(s, e);
+    });
+  }
+  const syncLokasiOtherVisibility = () => {
+    if (!selLokasi || !inLokasiOther) return;
+    if (selLokasi.value === "Lainlain") {
+      inLokasiOther.style.display = "";
+    } else {
+      inLokasiOther.style.display = "none";
+    }
+  };
+  if (selLokasi) {
+    selLokasi.addEventListener("change", syncLokasiOtherVisibility);
+  }
   if (inInvCode) {
     if (d.inv_code) {
       inInvCode.value = d.inv_code;
@@ -1135,6 +1201,10 @@ function renderActivity(d, container, shouldAnimate = false) {
     });
   }
   if (selLokasi && d.lokasi) selLokasi.value = d.lokasi;
+  if (inLokasiOther && d.lokasi === "Lainlain" && d.lokasi_custom) {
+    inLokasiOther.value = d.lokasi_custom;
+  }
+  syncLokasiOtherVisibility();
   if (inPengguna && d.pengguna) inPengguna.value = d.pengguna;
   if (taRemarks && d.remarks) taRemarks.value = d.remarks;
   if (selQuality && d.quality) selQuality.value = d.quality;
@@ -1383,10 +1453,15 @@ async function finishActivity(item, isManual = false) {
   const tanggal = todayStr();
   const bulan = tanggal.slice(0, 7);
   let inv = "";
+  let lokasiFromActive = "";
+  let lokasiCustomFromActive = "";
   try {
     const activeSnap = await activeCol.doc(idForTimer).get();
     if (activeSnap.exists) {
-      inv = (activeSnap.data().inv_code || "").toUpperCase();
+      const data = activeSnap.data() || {};
+      inv = (data.inv_code || "").toUpperCase();
+      lokasiFromActive = data.lokasi || "";
+      lokasiCustomFromActive = data.lokasi_custom || "";
     }
   } catch (e) {}
   if (!inv) {
@@ -1395,7 +1470,12 @@ async function finishActivity(item, isManual = false) {
   }
   const qualityEl = item.querySelector('select[name="quality"]');
   const quality = qualityEl ? qualityEl.value : "Finish";
-  const lokasi = item.querySelector('select[name="lokasi"]').value;
+  const lokasiSelectEl = item.querySelector('select[name="lokasi"]');
+  const lokasiSelectValue = lokasiSelectEl ? lokasiSelectEl.value : "";
+  let lokasi = lokasiSelectValue;
+  if (lokasiFromActive === "Lainlain" && lokasiCustomFromActive) {
+    lokasi = lokasiCustomFromActive;
+  }
   const remarks = item.querySelector('textarea[name="remarks"]').value;
   const pengguna = item.querySelector('input[name="pengguna"]').value;
   const codes = Array.from(
@@ -1776,14 +1856,27 @@ if (activitiesContainer) {
       item.querySelectorAll('input[name$="_code"]:checked')
     ).map((cb) => cb.value);
     try {
+      const lokasiSelectValue = lokasiEl ? lokasiEl.value : "";
+      const lokasiOtherEl = item.querySelector('input[name="lokasi_other"]');
+      const lokasiCustomValue =
+        lokasiSelectValue === "Lainlain" && lokasiOtherEl
+          ? lokasiOtherEl.value.trim()
+          : "";
       const payload = {
-        lokasi: lokasiEl ? lokasiEl.value : "",
+        lokasi: lokasiSelectValue,
         pengguna: penggunaEl ? penggunaEl.value : "",
         remarks: remarksEl ? remarksEl.value : "",
         quality: qualityEl ? qualityEl.value : "Finish",
         kode_pekerjaan: codes,
         uid: currentUser.uid,
       };
+      if (lokasiSelectValue === "Lainlain") {
+        payload.lokasi_custom = lokasiCustomValue
+          ? lokasiCustomValue
+          : firebase.firestore.FieldValue.delete();
+      } else {
+        payload.lokasi_custom = firebase.firestore.FieldValue.delete();
+      }
       if (invItemEl) {
         payload.inv_code = (invItemEl.value || "").toUpperCase();
       }
@@ -1833,7 +1926,27 @@ if (reportFormEl)
     const tanggal = todayStr();
     const bulan = tanggal.slice(0, 7);
     const inv = document.getElementById("inv_code").value.toUpperCase();
-    const lokasi = document.getElementById("lokasi").value;
+    const lokasiSelectEl = document.getElementById("lokasi");
+    const lokasiOtherEl = document.getElementById("lokasi_other");
+    const lokasiValue = lokasiSelectEl ? lokasiSelectEl.value : "";
+    let lokasi = lokasiValue;
+    let lokasiCustom = "";
+    if (lokasiValue === "Lainlain") {
+      const customLokasi = lokasiOtherEl ? lokasiOtherEl.value.trim() : "";
+      if (!customLokasi) {
+        showToast(
+          "warning",
+          "Please input other location name when choosing Other Location"
+        );
+        isReportFormSubmitting = false;
+        if (btnSubmit) {
+          btnSubmit.disabled = false;
+          btnSubmit.innerText = originalBtnText;
+        }
+        return;
+      }
+      lokasiCustom = customLokasi;
+    }
     const remarks = document.getElementById("remarks").value;
     const pengguna = document.getElementById("pengguna").value;
     const codes = Array.from(
@@ -1851,6 +1964,7 @@ if (reportFormEl)
         bulan,
         inv_code: inv,
         lokasi,
+        lokasi_custom: lokasiCustom || null,
         remarks,
         pengguna,
         kode_pekerjaan: codes,
