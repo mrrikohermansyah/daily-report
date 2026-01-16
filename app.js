@@ -263,6 +263,42 @@ const authStatus = document.getElementById("auth_status");
 const btnLoginGoogle = document.getElementById("btn_login_google");
 const btnSignup = document.getElementById("btn_signup");
 const btnReset = document.getElementById("btn_reset");
+const penggunaInput = document.getElementById("pengguna");
+const remarksTextarea = document.getElementById("remarks");
+
+function attachWordAutoCapitalize(el) {
+  if (!el) return;
+  el.addEventListener("input", () => {
+    const s = el.selectionStart;
+    const e = el.selectionEnd;
+    const v = el.value;
+    const formatted = v.replace(/(^|\s)(\S)/g, (match, before, ch) => before + ch.toUpperCase());
+    if (formatted !== v) {
+      el.value = formatted;
+      if (s != null && e != null) el.setSelectionRange(s, e);
+    }
+  });
+}
+
+function attachFirstCharAutoCapitalize(el) {
+  if (!el) return;
+  el.addEventListener("input", () => {
+    const s = el.selectionStart;
+    const e = el.selectionEnd;
+    const v = el.value;
+    if (!v) return;
+    const first = v.charAt(0).toUpperCase();
+    const rest = v.slice(1);
+    const formatted = first + rest;
+    if (formatted !== v) {
+      el.value = formatted;
+      if (s != null && e != null) el.setSelectionRange(s, e);
+    }
+  });
+}
+
+attachWordAutoCapitalize(penggunaInput);
+attachFirstCharAutoCapitalize(remarksTextarea);
 
 function updateAuthStatus(text) {
   if (authStatus) authStatus.textContent = text || "";
@@ -1187,6 +1223,8 @@ function renderActivity(d, container, shouldAnimate = false) {
       if (s != null && e != null) inLokasiOther.setSelectionRange(s, e);
     });
   }
+  attachWordAutoCapitalize(inPengguna);
+  attachFirstCharAutoCapitalize(taRemarks);
   const syncLokasiOtherVisibility = () => {
     if (!selLokasi || !inLokasiOther) return;
     if (selLokasi.value === "Lainlain") {
