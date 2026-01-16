@@ -149,13 +149,13 @@ function showPersistentToastIfAny() {
     let data = {};
     try {
       data = JSON.parse(raw) || {};
-    } catch {}
+    } catch { }
     showToast(
       data.icon || "success",
       data.title || "Login successful",
       data.text || ""
     );
-  } catch {}
+  } catch { }
 }
 
 // =========================
@@ -192,7 +192,7 @@ function handleIdleTimeout() {
         idleLogoutPending = false;
         try {
           window.location.replace("login.html");
-        } catch {}
+        } catch { }
       });
   }
 }
@@ -257,6 +257,7 @@ const loginName = document.getElementById("loginName");
 const loginEmail = document.getElementById("loginEmail");
 const loginPassword = document.getElementById("loginPassword");
 const btnLogin = document.getElementById("btn_login");
+const loginForm = document.getElementById("loginForm");
 const btnLogout = document.getElementById("btn_logout");
 const authStatus = document.getElementById("auth_status");
 const btnLoginGoogle = document.getElementById("btn_login_google");
@@ -267,7 +268,18 @@ function updateAuthStatus(text) {
   if (authStatus) authStatus.textContent = text || "";
 }
 
-if (btnLogin) {
+if (loginForm) {
+  loginForm.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const email = loginEmail ? loginEmail.value : "";
+    const password = loginPassword ? loginPassword.value : "";
+    try {
+      await auth.signInWithEmailAndPassword(email, password);
+    } catch (e) {
+      showToast("error", e && e.message ? e.message : "Failed to login");
+    }
+  });
+} else if (btnLogin) {
   btnLogin.addEventListener("click", async () => {
     const email = loginEmail ? loginEmail.value : "";
     const password = loginPassword ? loginPassword.value : "";
@@ -343,7 +355,7 @@ if (btnSignup) {
         if (nameValue) {
           try {
             await cred.user.updateProfile({ displayName: nameValue });
-          } catch (e) {}
+          } catch (e) { }
         }
       }
     } catch (e) {
@@ -373,7 +385,7 @@ if (btnSignup) {
                     "Name has been added to your existing account"
                   );
                   return;
-                } catch (updateErr) {}
+                } catch (updateErr) { }
               }
             } catch (signInErr) {
               if (signInErr && signInErr.code === "auth/wrong-password") {
@@ -457,7 +469,7 @@ auth.onAuthStateChanged((user) => {
   if (!currentUser && !isLoginPage && !idleLogoutPending) {
     try {
       window.location.replace("login.html");
-    } catch {}
+    } catch { }
   }
   if (currentUser && isLoginPage) {
     try {
@@ -469,7 +481,7 @@ auth.onAuthStateChanged((user) => {
       };
       sessionStorage.setItem("postLoginToast", JSON.stringify(data));
       window.location.replace("index.html");
-    } catch {}
+    } catch { }
   }
 });
 
@@ -1203,7 +1215,7 @@ function renderActivity(d, container, shouldAnimate = false) {
                 { merge: true }
               );
           }
-        } catch (e) {}
+        } catch (e) { }
       }
     }
     inInvCode.addEventListener("input", () => {
@@ -1322,22 +1334,20 @@ function renderActivitySummary(d, container) {
     </div>
     <div class="summary-times">
       <span>${d.jam_mulai || "-"}</span> - <span>${d.jam_selesai || "-"}</span>
-      <span class="summary-duration ${durClass}">${
-    dur != null ? formatDuration(dur) : ""
-  }</span>
+      <span class="summary-duration ${durClass}">${dur != null ? formatDuration(dur) : ""
+    }</span>
       <span class="ml-2">${d.quality || ""}</span>
     </div>
     <div class="summary-remarks">${d.remarks || ""}</div>
     
     <div class="summary-id">Activity ID: ${activityId}</div>
-    ${
-      d.tanggal === todayStr()
-        ? `<div class="summary-footer">
+    ${d.tanggal === todayStr()
+      ? `<div class="summary-footer">
              <button type="button" class="btn-danger btn-sm" onclick="undoActivity('${d.id}')">
                <i class="fas fa-undo"></i> Undo
              </button>
            </div>`
-        : ""
+      : ""
     }
   `;
   (container || historyContainer).appendChild(el);
@@ -1404,7 +1414,7 @@ async function addActivity() {
       err && err.code === "permission-denied"
         ? "Access denied by Firestore Rules when adding activity."
         : "Failed to add activity: " +
-            (err && err.message ? err.message : "Unknown error"),
+        (err && err.message ? err.message : "Unknown error"),
       "error"
     );
   } finally {
@@ -1483,7 +1493,7 @@ async function finishActivity(item, isManual = false) {
       lokasiFromActive = data.lokasi || "";
       lokasiCustomFromActive = data.lokasi_custom || "";
     }
-  } catch (e) {}
+  } catch (e) { }
   if (!inv) {
     const invInputEl = document.getElementById("inv_code");
     inv = invInputEl && invInputEl.value ? invInputEl.value.toUpperCase() : "";
@@ -1536,7 +1546,7 @@ async function finishActivity(item, isManual = false) {
       await activeCol
         .doc(idForTimer)
         .set({ report_doc_id: idForTimer }, { merge: true });
-    } catch (e) {}
+    } catch (e) { }
 
     // if (btnFinish) btnFinish.disabled = true; // Already disabled above
     const btnStart = item.querySelector('[data-role="start"]');
@@ -1555,7 +1565,7 @@ async function finishActivity(item, isManual = false) {
       err && err.code === "permission-denied"
         ? "Access denied by Firestore Rules when saving finished report."
         : "Failed to save report: " +
-            (err && err.message ? err.message : "Unknown error"),
+        (err && err.message ? err.message : "Unknown error"),
       "error"
     );
     return null;
@@ -1638,7 +1648,7 @@ if (activitiesContainer) {
           err && err.code === "permission-denied"
             ? "Access denied by Firestore Rules when deleting activity."
             : "Failed to delete activity: " +
-                (err && err.message ? err.message : "Unknown error"),
+            (err && err.message ? err.message : "Unknown error"),
           "error"
         );
       }
@@ -1713,7 +1723,7 @@ if (activitiesContainer) {
           err && err.code === "permission-denied"
             ? "Access denied by Firestore Rules when starting activity."
             : "Failed to start activity: " +
-                (err && err.message ? err.message : "Unknown error"),
+            (err && err.message ? err.message : "Unknown error"),
           "error"
         );
       }
@@ -1753,7 +1763,7 @@ if (activitiesContainer) {
           err && err.code === "permission-denied"
             ? "Access denied by Firestore Rules when marking activity as finished."
             : "Failed to mark activity as finished: " +
-                (err && err.message ? err.message : "Unknown error"),
+            (err && err.message ? err.message : "Unknown error"),
           "error"
         );
       }
@@ -1796,7 +1806,7 @@ if (activitiesContainer) {
           err && err.code === "permission-denied"
             ? "Access denied by Firestore Rules when saving manual activity."
             : "Failed to save manual activity: " +
-                (err && err.message ? err.message : "Unknown error"),
+            (err && err.message ? err.message : "Unknown error"),
           "error"
         );
       }
@@ -1874,7 +1884,7 @@ if (activitiesContainer) {
               },
               { merge: true }
             );
-          } catch (err) {}
+          } catch (err) { }
         }
       }
     }
@@ -1922,7 +1932,7 @@ if (activitiesContainer) {
         err && err.code === "permission-denied"
           ? "Access denied by Firestore Rules when updating activity."
           : "Failed to update activity: " +
-              (err && err.message ? err.message : "Unknown error")
+          (err && err.message ? err.message : "Unknown error")
       );
     }
   });
@@ -2079,7 +2089,7 @@ async function exportExcel() {
     Swal.fire(
       "Error",
       "Gagal mengambil data: " +
-        (err && err.message ? err.message : "Unknown error"),
+      (err && err.message ? err.message : "Unknown error"),
       "error"
     );
     return;
