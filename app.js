@@ -262,6 +262,7 @@ const btnLogout = document.getElementById("btn_logout");
 const authStatus = document.getElementById("auth_status");
 const btnLoginGoogle = document.getElementById("btn_login_google");
 const btnSignup = document.getElementById("btn_signup");
+const btnCancelSignup = document.getElementById("btn_cancel_signup");
 const btnReset = document.getElementById("btn_reset");
 const penggunaInput = document.getElementById("pengguna");
 const remarksTextarea = document.getElementById("remarks");
@@ -362,9 +363,10 @@ if (btnLoginGoogle) {
 
 if (btnSignup) {
   btnSignup.addEventListener("click", async () => {
-    if (loginName) {
+    if (loginName && loginForm) {
       if (loginName.style.display === "none") {
         loginName.style.display = "block";
+        loginForm.classList.add("signup-mode");
         loginName.focus();
         return;
       }
@@ -442,6 +444,16 @@ if (btnSignup) {
         msg = "Password too weak (min 6 chars)";
       showToast("error", msg);
     }
+  });
+}
+
+if (btnCancelSignup && loginForm) {
+  btnCancelSignup.addEventListener("click", () => {
+    if (loginName) {
+      loginName.style.display = "none";
+      loginName.value = "";
+    }
+    loginForm.classList.remove("signup-mode");
   });
 }
 
