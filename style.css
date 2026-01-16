@@ -743,7 +743,7 @@ button:active {
 
 .signup-actions-row {
   display: flex;
-  align-items: center;
+  align-items: stretch;
   justify-content: center;
   gap: 8px;
   margin-top: 20px;
@@ -757,9 +757,10 @@ button:active {
   padding-left: 0;
   padding-right: 0;
   white-space: nowrap;
-   background: var(--danger);
-   color: #fff;
-   border: none;
+  background: var(--danger);
+  color: #fff;
+  border: none;
+  line-height: 1;
   transition: flex-basis 0.25s ease, max-width 0.25s ease, opacity 0.25s ease,
     padding 0.25s ease;
 }
