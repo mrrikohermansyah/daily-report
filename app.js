@@ -153,7 +153,7 @@ function showPersistentToastIfAny() {
     showToast(
       data.icon || "success",
       data.title || "Login successful",
-      data.text || ""
+      data.text || "",
     );
   } catch {}
 }
@@ -207,7 +207,7 @@ function handleIdleTimeout() {
 // =========================
 function getSelectedCodes() {
   return Array.from(
-    document.querySelectorAll("input[type=checkbox]:checked")
+    document.querySelectorAll("input[type=checkbox]:checked"),
   ).map((cb) => cb.value);
 }
 
@@ -275,7 +275,7 @@ function attachWordAutoCapitalize(el) {
     const v = el.value;
     const formatted = v.replace(
       /(^|\s)(\S)/g,
-      (match, before, ch) => before + ch.toUpperCase()
+      (match, before, ch) => before + ch.toUpperCase(),
     );
     if (formatted !== v) {
       el.value = formatted;
@@ -358,7 +358,7 @@ if (btnLoginGoogle) {
     } catch (e) {
       showToast(
         "error",
-        e && e.message ? e.message : "Failed to login with Google"
+        e && e.message ? e.message : "Failed to login with Google",
       );
     }
   });
@@ -410,7 +410,7 @@ if (btnSignup) {
             try {
               const signInCred = await auth.signInWithEmailAndPassword(
                 email,
-                password
+                password,
               );
               if (
                 signInCred &&
@@ -423,7 +423,7 @@ if (btnSignup) {
                   });
                   showToast(
                     "success",
-                    "Name has been added to your existing account"
+                    "Name has been added to your existing account",
                   );
                   return;
                 } catch (updateErr) {}
@@ -474,7 +474,7 @@ if (btnReset) {
     } catch (e) {
       showToast(
         "error",
-        e && e.message ? e.message : "Failed to send reset link"
+        e && e.message ? e.message : "Failed to send reset link",
       );
     }
   });
@@ -573,7 +573,7 @@ function loadDraftsRealtime() {
           activeCount += 1;
           currentIds.add(d.id);
           const existingEl = activitiesContainer.querySelector(
-            `.activity-item[data-id="${d.id}"]`
+            `.activity-item[data-id="${d.id}"]`,
           );
           if (existingEl) {
             updateActivityElement(existingEl, d);
@@ -585,7 +585,7 @@ function loadDraftsRealtime() {
 
       // Hapus item yang tidak ada di snapshot
       const allItems = Array.from(
-        activitiesContainer.querySelectorAll(".activity-item")
+        activitiesContainer.querySelectorAll(".activity-item"),
       );
       allItems.forEach((el) => {
         if (!currentIds.has(el.dataset.id)) {
@@ -622,7 +622,7 @@ function loadDraftsRealtime() {
         }
       } else {
         const placeholder = Array.from(activitiesContainer.children).find(
-          (c) => !c.classList.contains("activity-item")
+          (c) => !c.classList.contains("activity-item"),
         );
         if (placeholder) placeholder.remove();
       }
@@ -630,7 +630,7 @@ function loadDraftsRealtime() {
     },
     (err) => {
       if (statusEl) statusEl.textContent = `Failed to load drafts: ${err.code}`;
-    }
+    },
   );
   return unsub;
 }
@@ -703,13 +703,13 @@ function parseHM(hm) {
 function getRelativeDateLabel(dateStr) {
   const t = new Date();
   const today = `${t.getFullYear()}-${pad(t.getMonth() + 1)}-${pad(
-    t.getDate()
+    t.getDate(),
   )}`;
 
   const y = new Date(t);
   y.setDate(t.getDate() - 1);
   const yesterday = `${y.getFullYear()}-${pad(y.getMonth() + 1)}-${pad(
-    y.getDate()
+    y.getDate(),
   )}`;
 
   if (dateStr === today) return "(Today)";
@@ -818,7 +818,7 @@ async function undoActivity(historyId) {
         Swal.fire(
           "Failed",
           "Local data not found, failed to restore draft.",
-          "error"
+          "error",
         );
         return;
       }
@@ -837,7 +837,7 @@ async function undoActivity(historyId) {
     Swal.fire(
       "Error",
       "Failed to undo activity: " + (err.message || err),
-      "error"
+      "error",
     );
   }
 }
@@ -887,19 +887,19 @@ function stopTimer() {
 if (tanggalInput && !tanggalInput.value) {
   const t = new Date();
   tanggalInput.value = `${t.getFullYear()}-${pad(t.getMonth() + 1)}-${pad(
-    t.getDate()
+    t.getDate(),
   )}`;
 }
 if (historyDateInput && !historyDateInput.value) {
   const t = new Date();
   historyDateInput.value = `${t.getFullYear()}-${pad(t.getMonth() + 1)}-${pad(
-    t.getDate()
+    t.getDate(),
   )}`;
 }
 if (exportDateInput && !exportDateInput.value) {
   const t = new Date();
   exportDateInput.value = `${t.getFullYear()}-${pad(t.getMonth() + 1)}-${pad(
-    t.getDate()
+    t.getDate(),
   )}`;
 }
 if (historyDateInput) {
@@ -1028,7 +1028,7 @@ function buildCodeChips(namePrefix) {
   return codesList
     .map(
       (c) =>
-        `<label class="chip"><input type="checkbox" name="${namePrefix}_code" value="${c}" /><span>${c}</span></label>`
+        `<label class="chip"><input type="checkbox" name="${namePrefix}_code" value="${c}" /><span>${c}</span></label>`,
     )
     .join("");
 }
@@ -1283,7 +1283,7 @@ function renderActivity(d, container, shouldAnimate = false) {
               .doc(d.id)
               .set(
                 { inv_code: globalInv.toUpperCase(), uid: currentUser.uid },
-                { merge: true }
+                { merge: true },
               );
           }
         } catch (e) {}
@@ -1307,7 +1307,7 @@ function renderActivity(d, container, shouldAnimate = false) {
   if (Array.isArray(d.kode_pekerjaan)) {
     d.kode_pekerjaan.forEach((code) => {
       const cb = el.querySelector(
-        `input[name="${d.id}_code"][value="${code}"]`
+        `input[name="${d.id}_code"][value="${code}"]`,
       );
       if (cb) cb.checked = true;
     });
@@ -1406,8 +1406,8 @@ function renderActivitySummary(d, container) {
     <div class="summary-times">
       <span>${d.jam_mulai || "-"}</span> - <span>${d.jam_selesai || "-"}</span>
       <span class="summary-duration ${durClass}">${
-    dur != null ? formatDuration(dur) : ""
-  }</span>
+        dur != null ? formatDuration(dur) : ""
+      }</span>
       <span class="ml-2">${d.quality || ""}</span>
     </div>
     <div class="summary-remarks">${d.remarks || ""}</div>
@@ -1455,7 +1455,7 @@ async function addActivity() {
   activityCounter += 1;
   const t = new Date();
   const tanggal = `${t.getFullYear()}-${pad(t.getMonth() + 1)}-${pad(
-    t.getDate()
+    t.getDate(),
   )}`;
   const bulan = tanggal.slice(0, 7);
   const inv = (document.getElementById("inv_code").value || "").toUpperCase();
@@ -1488,7 +1488,7 @@ async function addActivity() {
         ? "Access denied by Firestore Rules when adding activity."
         : "Failed to add activity: " +
             (err && err.message ? err.message : "Unknown error"),
-      "error"
+      "error",
     );
   } finally {
     isAddingActivity = false;
@@ -1582,7 +1582,7 @@ async function finishActivity(item, isManual = false) {
   const remarks = item.querySelector('textarea[name="remarks"]').value;
   const pengguna = item.querySelector('input[name="pengguna"]').value;
   const codes = Array.from(
-    item.querySelectorAll('input[name$="_code"]:checked')
+    item.querySelectorAll('input[name$="_code"]:checked'),
   ).map((cb) => cb.value);
 
   const durasiMenit = calculateDuration(inputMulai.value, inputSelesai.value);
@@ -1639,7 +1639,7 @@ async function finishActivity(item, isManual = false) {
         ? "Access denied by Firestore Rules when saving finished report."
         : "Failed to save report: " +
             (err && err.message ? err.message : "Unknown error"),
-      "error"
+      "error",
     );
     return null;
   }
@@ -1694,7 +1694,7 @@ if (activitiesContainer) {
         showToast(
           "success",
           "Activity deleted",
-          "Activity has been removed from Active List"
+          "Activity has been removed from Active List",
         );
 
         // Add fade-out class
@@ -1722,7 +1722,7 @@ if (activitiesContainer) {
             ? "Access denied by Firestore Rules when deleting activity."
             : "Failed to delete activity: " +
                 (err && err.message ? err.message : "Unknown error"),
-          "error"
+          "error",
         );
       }
     }
@@ -1760,7 +1760,7 @@ if (activitiesContainer) {
               now.getDate(),
               h,
               m,
-              0
+              0,
             ).getTime();
             updates.startMs = newStartMs;
           }
@@ -1788,7 +1788,7 @@ if (activitiesContainer) {
             startMs: Date.now(),
             uid: currentUser.uid,
           },
-          { merge: true }
+          { merge: true },
         );
       } catch (err) {
         Swal.fire(
@@ -1797,7 +1797,7 @@ if (activitiesContainer) {
             ? "Access denied by Firestore Rules when starting activity."
             : "Failed to start activity: " +
                 (err && err.message ? err.message : "Unknown error"),
-          "error"
+          "error",
         );
       }
     }
@@ -1812,7 +1812,7 @@ if (activitiesContainer) {
             jam_selesai: newReport.jam_selesai,
             uid: currentUser.uid,
           },
-          { merge: true }
+          { merge: true },
         );
 
         const currentHistoryDate = historyDateInput
@@ -1825,7 +1825,7 @@ if (activitiesContainer) {
         showToast(
           "success",
           "Activity finished",
-          "Activity has been moved to Activities Done (Today)"
+          "Activity has been moved to Activities Done (Today)",
         );
         if (item && item.parentElement) {
           item.remove();
@@ -1837,7 +1837,7 @@ if (activitiesContainer) {
             ? "Access denied by Firestore Rules when marking activity as finished."
             : "Failed to mark activity as finished: " +
                 (err && err.message ? err.message : "Unknown error"),
-          "error"
+          "error",
         );
       }
     }
@@ -1853,7 +1853,7 @@ if (activitiesContainer) {
             jam_selesai: selesai,
             uid: currentUser.uid,
           },
-          { merge: true }
+          { merge: true },
         );
 
         if (newReport) {
@@ -1868,7 +1868,7 @@ if (activitiesContainer) {
         showToast(
           "success",
           "Activity finished",
-          "Activity has been moved to Activities Done (Today)"
+          "Activity has been moved to Activities Done (Today)",
         );
         if (item && item.parentElement) {
           item.remove();
@@ -1880,7 +1880,7 @@ if (activitiesContainer) {
             ? "Access denied by Firestore Rules when saving manual activity."
             : "Failed to save manual activity: " +
                 (err && err.message ? err.message : "Unknown error"),
-          "error"
+          "error",
         );
       }
     }
@@ -1934,7 +1934,7 @@ if (activitiesContainer) {
                 now.getDate(),
                 h,
                 m,
-                0
+                0,
               ).getTime();
               activityTimers[id] = { startMs, interval: null };
               const update = () => {
@@ -1955,7 +1955,7 @@ if (activitiesContainer) {
                 startMs,
                 uid: currentUser.uid,
               },
-              { merge: true }
+              { merge: true },
             );
           } catch (err) {}
         }
@@ -1972,7 +1972,7 @@ if (activitiesContainer) {
     const remarksEl = item.querySelector('textarea[name="remarks"]');
     const qualityEl = item.querySelector('select[name="quality"]');
     const codes = Array.from(
-      item.querySelectorAll('input[name$="_code"]:checked')
+      item.querySelectorAll('input[name$="_code"]:checked'),
     ).map((cb) => cb.value);
     try {
       const lokasiSelectValue = lokasiEl ? lokasiEl.value : "";
@@ -2005,7 +2005,7 @@ if (activitiesContainer) {
         err && err.code === "permission-denied"
           ? "Access denied by Firestore Rules when updating activity."
           : "Failed to update activity: " +
-              (err && err.message ? err.message : "Unknown error")
+              (err && err.message ? err.message : "Unknown error"),
       );
     }
   });
@@ -2055,7 +2055,7 @@ if (reportFormEl)
       if (!customLokasi) {
         showToast(
           "warning",
-          "Please input other location name when choosing Other Location"
+          "Please input other location name when choosing Other Location",
         );
         isReportFormSubmitting = false;
         if (btnSubmit) {
@@ -2070,8 +2070,8 @@ if (reportFormEl)
     const pengguna = document.getElementById("pengguna").value;
     const codes = Array.from(
       document.querySelectorAll(
-        "#reportForm .checkbox-group input[type=checkbox]:checked"
-      )
+        "#reportForm .checkbox-group input[type=checkbox]:checked",
+      ),
     ).map((cb) => cb.value);
     const jm = nowHM();
     try {
@@ -2100,7 +2100,7 @@ if (reportFormEl)
       showToast(
         "success",
         "Activity added",
-        "New activity has been added to Active List"
+        "New activity has been added to Active List",
       );
       e.target.reset();
     } catch (err) {
@@ -2147,7 +2147,7 @@ async function exportExcel() {
       Swal.fire(
         "Access denied",
         "Access denied by Firestore Rules. Allow read on daily_reports.",
-        "error"
+        "error",
       );
       return;
     }
@@ -2155,7 +2155,7 @@ async function exportExcel() {
       Swal.fire(
         "Index Missing",
         "Index for query uid+tanggal on daily_reports is missing. Create index in Firestore.",
-        "error"
+        "error",
       );
       return;
     }
@@ -2163,7 +2163,7 @@ async function exportExcel() {
       "Error",
       "Gagal mengambil data: " +
         (err && err.message ? err.message : "Unknown error"),
-      "error"
+      "error",
     );
     return;
   }
@@ -2239,7 +2239,11 @@ async function exportExcel() {
     ws2.getCell("B4").alignment = { vertical: "middle", horizontal: "center" };
 
     ws2.mergeCells("B6:D6");
-    ws2.getCell("B6").value = `Nama / Name : Riko Hermansyah`;
+    let userName = "Unknown User";
+    if (typeof currentUser !== "undefined" && currentUser !== null) {
+      userName = currentUser.displayName || currentUser.email || "Unknown User";
+    }
+    ws2.getCell("B6").value = `Nama / Name : ${userName}`;
     ws2.getCell("A6").font = { bold: true, size: 10 };
     ws2.getCell("A6").alignment = { vertical: "middle", horizontal: "left" };
     ws2.mergeCells("E6:H6");
