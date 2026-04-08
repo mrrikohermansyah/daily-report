@@ -14,6 +14,7 @@ const db = firebase.firestore();
 const auth = firebase.auth();
 
 let idleLogoutPending = false;
+let isSignupInProgress = false;
 
 // =========================
 // THEME MANAGEMENT
@@ -390,16 +391,32 @@ if (btnSignup) {
       return;
     }
     try {
+      isSignupInProgress = true;
       const cred = await auth.createUserWithEmailAndPassword(email, password);
       if (cred && cred.user && loginName) {
         const nameValue = loginName.value.trim();
         if (nameValue) {
           try {
             await cred.user.updateProfile({ displayName: nameValue });
-          } catch (e) {}
+            await cred.user.reload();
+            const updatedUser = auth.currentUser;
+            updateAuthStatus(`Login as ${updatedUser.displayName || updatedUser.email}`);
+          } catch (e) {
+            console.error("Profile update error:", e);
+          }
         }
       }
+      // Manual redirect to ensure profile update is finished
+      const data = {
+        icon: "success",
+        title: "Successfully logged in",
+        timer: 1600,
+        position: "top-end",
+      };
+      sessionStorage.setItem("postLoginToast", JSON.stringify(data));
+      window.location.replace("index.html");
     } catch (e) {
+      isSignupInProgress = false;
       let msg = e && e.message ? e.message : "Failed to create account";
       if (e && e.code === "auth/operation-not-allowed")
         msg = "Email/Password sign-in method not enabled in Firebase Console";
@@ -418,15 +435,20 @@ if (btnSignup) {
                 !signInCred.user.displayName
               ) {
                 try {
+                  isSignupInProgress = true;
                   await signInCred.user.updateProfile({
                     displayName: nameValue,
                   });
+                  await signInCred.user.reload();
                   showToast(
                     "success",
                     "Name has been added to your existing account",
                   );
+                  window.location.replace("index.html");
                   return;
-                } catch (updateErr) {}
+                } catch (updateErr) {
+                  isSignupInProgress = false;
+                }
               }
             } catch (signInErr) {
               if (signInErr && signInErr.code === "auth/wrong-password") {
@@ -522,7 +544,7 @@ auth.onAuthStateChanged((user) => {
       window.location.replace("login.html");
     } catch {}
   }
-  if (currentUser && isLoginPage) {
+  if (currentUser && isLoginPage && !isSignupInProgress) {
     try {
       const data = {
         icon: "success",
