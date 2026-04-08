@@ -2265,32 +2265,32 @@ async function exportExcel() {
         const file = originalFileInput.files[0];
         const arrayBuffer = await file.arrayBuffer();
         await wb2.xlsx.load(arrayBuffer);
-        ws2 = wb2.getWorksheet(1); // Assume first worksheet
+        const [y, mStr] = tgl.split("-");
+        const mNo = Number(mStr);
+        const sheetName1 = `${y}-${mNo}`; // e.g., 2026-4
+        const sheetName2 = `${y}-${mStr}`; // e.g., 2026-04
+        ws2 = wb2.getWorksheet(sheetName1) || wb2.getWorksheet(sheetName2) || (wb2.worksheets && wb2.worksheets[0]);
+        if (!ws2) throw new Error("No worksheet found in the selected file");
 
-        // Find last data row by checking column B (Date) starting from row 11
-        let lastDataRow = 10;
-        ws2.eachRow({ includeEmpty: true }, (row, rowNumber) => {
-          if (rowNumber >= 10) {
-            const dateCellValue = row.getCell(2).value;
-            // If it's a header or has content that looks like a date/data, it's a data row
-            if (dateCellValue && dateCellValue !== "") {
-              // We check if it's not the footer/signature area
-              // Typically the signature area is further down and doesn't have column B filled with dates
-              if (
-                typeof dateCellValue === "string" &&
-                (dateCellValue.includes("/") ||
-                  dateCellValue.includes("-") ||
-                  rowNumber === 10)
-              ) {
-                lastDataRow = rowNumber;
-              } else if (dateCellValue instanceof Date) {
-                lastDataRow = rowNumber;
-              }
-            }
+        let detectedHeaderRow = null;
+        for (let r = 1; r <= 30; r++) {
+          const val = ws2.getCell(r, 2).value;
+          if (typeof val === "string" && val.toLowerCase().includes("tgl")) {
+            detectedHeaderRow = r;
+            break;
           }
-        });
-        headerRowIndex = 10; // Keep header row index for styling reference
-        var rowIndex = lastDataRow + 1;
+        }
+        headerRowIndex = detectedHeaderRow || 10;
+
+        let rowIndex = headerRowIndex + 1;
+        const rowHasData = (r) => {
+          for (let c = 2; c <= 9; c++) {
+            const v = ws2.getCell(r, c).value;
+            if (v !== undefined && v !== null && v !== "") return true;
+          }
+          return false;
+        };
+        while (rowHasData(rowIndex)) rowIndex++;
       } catch (err) {
         console.error("Error loading original file:", err);
         showToast(
@@ -2431,26 +2431,7 @@ async function exportExcel() {
       ws2.getRow(rowIndex).height = pxToPt(20);
       rowIndex += 1;
     });
-    const emptyRowsCount = 2;
-    for (let k = 0; k < emptyRowsCount; k++) {
-      for (let i = 0; i < headers.length; i++) {
-        const cell = ws2.getCell(rowIndex, 2 + i);
-        cell.value = "";
-        cell.font = { name: "Arial", size: 10 };
-        cell.alignment = {
-          horizontal: "left",
-          vertical: "top",
-          wrapText: false,
-        };
-        cell.border = {
-          top: { style: "hair" },
-          left: { style: "hair" },
-          bottom: { style: "hair" },
-          right: { style: "hair" },
-        };
-      }
-      rowIndex += 1;
-    }
+
     const setBorderSide = (cell, side, style) => {
       const b = cell.border || {};
       const merged = {
@@ -2462,18 +2443,7 @@ async function exportExcel() {
       merged[side] = { style };
       cell.border = merged;
     };
-    const tableFirstRow = headerRowIndex;
-    const tableLastRow = rowIndex - 1;
-    const tableFirstCol = 2;
-    const tableLastCol = 2 + headers.length - 1;
-    for (let c = tableFirstCol; c <= tableLastCol; c++) {
-      setBorderSide(ws2.getCell(tableFirstRow, c), "top", "thick");
-      setBorderSide(ws2.getCell(tableLastRow, c), "bottom", "thick");
-    }
-    for (let r = tableFirstRow; r <= tableLastRow; r++) {
-      setBorderSide(ws2.getCell(r, tableFirstCol), "left", "thick");
-      setBorderSide(ws2.getCell(r, tableLastCol), "right", "thick");
-    }
+
     // ws2.views = [{ state: "frozen", xSplit: 1, ySplit: headerRowIndex }];
     // const spacer = ws2.addRow(["", "", "", "", "", "", "", "", ""]);
     // spacer.height = 10;
@@ -2504,13 +2474,14 @@ async function exportExcel() {
     const blob = new Blob([buf], {
       type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
     });
+    const fileName = (updateExisting && originalFileInput && originalFileInput.files && originalFileInput.files[0]) ? originalFileInput.files[0].name : "Daily_Report_Riko.xlsx";
     if (typeof saveAs === "function") {
-      saveAs(blob, "Daily_Report_Riko.xlsx");
+      saveAs(blob, fileName);
     } else {
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
-      a.download = "Daily_Report_Riko.xlsx";
+      a.download = fileName;
       document.body.appendChild(a);
       a.click();
       a.remove();
