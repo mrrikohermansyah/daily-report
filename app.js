@@ -263,6 +263,95 @@ function todayStr() {
   return `${t.getFullYear()}-${pad(t.getMonth() + 1)}-${pad(t.getDate())}`;
 }
 
+// Helper to convert column index to letter (e.g., 1 -> A, 2 -> B)
+function getColumnLetter(colIndex) {
+  let dividend = colIndex;
+  let columnName = "";
+  let modulo;
+  while (dividend > 0) {
+    modulo = (dividend - 1) % 26;
+    columnName = String.fromCharCode(65 + modulo) + columnName;
+    dividend = Math.floor((dividend - 1) / 26);
+  }
+  return columnName;
+}
+
+function setupNewWorksheet(ws, dateStr, hRowIdx, hData, pxToPtFn) {
+  ws.pageSetup = {
+    orientation: "landscape",
+    fitToPage: true,
+    fitToWidth: 1,
+    fitToHeight: 0,
+  };
+  ws.mergeCells("B1:D3");
+  ws.getCell("B1").value = "PT MEINDO ELANG INDAH";
+  ws.getCell("B1").font = { bold: true, size: 14, color: { argb: "FF000000" } };
+  ws.getCell("B1").alignment = { vertical: "middle", horizontal: "left" };
+
+  ws.mergeCells("E1:I3");
+  ws.getCell("E1").value =
+    "No. Form: PAT-SIT-801-PO1\nRev.00 Tanggal: 28-01-2019";
+  ws.getCell("E1").font = { bold: true, size: 10, color: { argb: "FF000000" } };
+  ws.getCell("E1").alignment = {
+    vertical: "middle",
+    horizontal: "right",
+    wrapText: true,
+  };
+
+  ws.mergeCells("B4:I4");
+  ws.getCell("B4").value = "AKTIVITAS-AKTIVITAS IT / IT ACTIVITIES";
+  ws.getCell("B4").font = { bold: true, size: 12, color: { argb: "FF000000" } };
+  ws.getCell("B4").alignment = { vertical: "middle", horizontal: "center" };
+
+  ws.mergeCells("B6:D6");
+  let uName = currentUser
+    ? currentUser.displayName || currentUser.email
+    : "Unknown User";
+  ws.getCell("B6").value = `Nama / Name : ${uName}`;
+  ws.getCell("A6").font = { bold: true, size: 10 };
+  ws.getCell("A6").alignment = { vertical: "middle", horizontal: "left" };
+
+  ws.mergeCells("E6:H6");
+  ws.getCell("E6").value = `Period : ${dateStr.slice(0, 7)}`;
+  ws.getCell("E6").font = { bold: true, size: 10 };
+  ws.getCell("E6").alignment = { vertical: "middle", horizontal: "right" };
+
+  const pxToWch = (px) => Math.round(px / 7);
+  ws.getColumn(1).width = pxToWch(15);
+  ws.getColumn(2).width = pxToWch(83);
+  ws.getColumn(3).width = pxToWch(113);
+  ws.getColumn(4).width = pxToWch(86);
+  ws.getColumn(5).width = pxToWch(181);
+  ws.getColumn(6).width = pxToWch(487);
+  ws.getColumn(7).width = pxToWch(126);
+  ws.getColumn(8).width = pxToWch(126);
+  ws.getColumn(9).width = pxToWch(123);
+
+  ws.getRow(hRowIdx).height = pxToPtFn(69);
+  const aligns = [
+    { horizontal: "right", vertical: "middle", wrapText: true, indent: 1 },
+    { horizontal: "center", vertical: "middle", wrapText: true },
+    { horizontal: "center", vertical: "middle", wrapText: true },
+    { horizontal: "center", vertical: "middle", wrapText: true },
+    { horizontal: "center", vertical: "middle", wrapText: true },
+    { horizontal: "center", vertical: "middle", wrapText: true },
+    { horizontal: "center", vertical: "middle", wrapText: true },
+    { horizontal: "center", vertical: "middle", wrapText: true },
+  ];
+  for (let i = 0; i < hData.length; i++) {
+    const cell = ws.getCell(`${getColumnLetter(2 + i)}${hRowIdx}`);
+    cell.value = hData[i];
+    cell.font = { name: "Arial", bold: true, size: 10 };
+    cell.alignment = aligns[i];
+    cell.border = {
+      top: { style: "thick" },
+      left: { style: "thick" },
+      bottom: { style: "thick" },
+      right: { style: "thick" },
+    };
+  }
+}
+
 const form = document.getElementById("reportForm");
 const btnMulai = document.getElementById("btn_mulai");
 const btnSelesai = document.getElementById("btn_selesai");
@@ -2269,12 +2358,15 @@ async function exportExcel() {
         const mNo = Number(mStr);
         const sheetName1 = `${y}-${mNo}`; // e.g., 2026-4
         const sheetName2 = `${y}-${mStr}`; // e.g., 2026-04
-        ws2 = wb2.getWorksheet(sheetName1) || wb2.getWorksheet(sheetName2) || (wb2.worksheets && wb2.worksheets[0]);
+        ws2 =
+          wb2.getWorksheet(sheetName1) ||
+          wb2.getWorksheet(sheetName2) ||
+          (wb2.worksheets && wb2.worksheets[0]);
         if (!ws2) throw new Error("No worksheet found in the selected file");
 
         let detectedHeaderRow = null;
         for (let r = 1; r <= 30; r++) {
-          const val = ws2.getCell(r, 2).value;
+          const val = ws2.getCell(`${getColumnLetter(2)}${r}`).value; // Check column B
           if (typeof val === "string" && val.toLowerCase().includes("tgl")) {
             detectedHeaderRow = r;
             break;
@@ -2285,7 +2377,8 @@ async function exportExcel() {
         let rowIndex = headerRowIndex + 1;
         const rowHasData = (r) => {
           for (let c = 2; c <= 9; c++) {
-            const v = ws2.getCell(r, c).value;
+            // Check columns B to I
+            const v = ws2.getCell(`${getColumnLetter(c)}${r}`).value;
             if (v !== undefined && v !== null && v !== "") return true;
           }
           return false;
@@ -2299,107 +2392,18 @@ async function exportExcel() {
         );
         // Fallback to new file if loading fails
         ws2 = wb2.addWorksheet(`Daily Report ${tgl}`);
-        setupNewWorksheet(ws2, tgl, headerRowIndex, header[0]);
+        setupNewWorksheet(ws2, tgl, headerRowIndex, header[0], pxToPt);
         var rowIndex = headerRowIndex + 1;
       }
     } else {
       ws2 = wb2.addWorksheet(`Daily Report ${tgl}`);
-      setupNewWorksheet(ws2, tgl, headerRowIndex, header[0]);
+      setupNewWorksheet(ws2, tgl, headerRowIndex, header[0], pxToPt);
       var rowIndex = headerRowIndex + 1;
-    }
-
-    function setupNewWorksheet(ws, dateStr, hRowIdx, headers) {
-      ws.pageSetup = {
-        orientation: "landscape",
-        fitToPage: true,
-        fitToWidth: 1,
-        fitToHeight: 0,
-      };
-      ws.mergeCells("B1:D3");
-      ws.getCell("B1").value = "PT MEINDO ELANG INDAH";
-      ws.getCell("B1").font = {
-        bold: true,
-        size: 14,
-        color: { argb: "FF000000" },
-      };
-      ws.getCell("B1").alignment = { vertical: "middle", horizontal: "left" };
-
-      ws.mergeCells("E1:I3");
-      ws.getCell("E1").value =
-        "No. Form: PAT-SIT-801-PO1\nRev.00 Tanggal: 28-01-2019";
-      ws.getCell("E1").font = {
-        bold: true,
-        size: 10,
-        color: { argb: "FF000000" },
-      };
-      ws.getCell("E1").alignment = {
-        vertical: "middle",
-        horizontal: "right",
-        wrapText: true,
-      };
-
-      ws.mergeCells("B4:I4");
-      ws.getCell("B4").value = "AKTIVITAS-AKTIVITAS IT / IT ACTIVITIES";
-      ws.getCell("B4").font = {
-        bold: true,
-        size: 12,
-        color: { argb: "FF000000" },
-      };
-      ws.getCell("B4").alignment = { vertical: "middle", horizontal: "center" };
-
-      ws.mergeCells("B6:D6");
-      let uName = "Unknown User";
-      if (typeof currentUser !== "undefined" && currentUser !== null) {
-        uName = currentUser.displayName || currentUser.email || "Unknown User";
-      }
-      ws.getCell("B6").value = `Nama / Name : ${uName}`;
-      ws.getCell("A6").font = { bold: true, size: 10 };
-      ws.getCell("A6").alignment = { vertical: "middle", horizontal: "left" };
-
-      ws.mergeCells("E6:H6");
-      ws.getCell("E6").value = `Period : ${dateStr.slice(0, 7)}`;
-      ws.getCell("E6").font = { bold: true, size: 10 };
-      ws.getCell("E6").alignment = { vertical: "middle", horizontal: "right" };
-
-      const pxToWch = (px) => Math.round(px / 7);
-      ws.getColumn(1).width = pxToWch(15);
-      ws.getColumn(2).width = pxToWch(83);
-      ws.getColumn(3).width = pxToWch(113);
-      ws.getColumn(4).width = pxToWch(86);
-      ws.getColumn(5).width = pxToWch(181);
-      ws.getColumn(6).width = pxToWch(487);
-      ws.getColumn(7).width = pxToWch(126);
-      ws.getColumn(8).width = pxToWch(126);
-      ws.getColumn(9).width = pxToWch(123);
-
-      ws.getRow(hRowIdx).height = pxToPt(69);
-      const aligns = [
-        { horizontal: "right", vertical: "middle", wrapText: true, indent: 1 },
-        { horizontal: "center", vertical: "middle", wrapText: true },
-        { horizontal: "center", vertical: "middle", wrapText: true },
-        { horizontal: "center", vertical: "middle", wrapText: true },
-        { horizontal: "center", vertical: "middle", wrapText: true },
-        { horizontal: "center", vertical: "middle", wrapText: true },
-        { horizontal: "center", vertical: "middle", wrapText: true },
-        { horizontal: "center", vertical: "middle", wrapText: true },
-      ];
-      for (let i = 0; i < headers.length; i++) {
-        const cell = ws.getCell(hRowIdx, 2 + i);
-        cell.value = headers[i];
-        cell.font = { name: "Arial", bold: true, size: 10 };
-        cell.alignment = aligns[i];
-        cell.border = {
-          top: { style: "thick" },
-          left: { style: "thick" },
-          bottom: { style: "thick" },
-          right: { style: "thick" },
-        };
-      }
     }
 
     rows.forEach((arr) => {
       for (let i = 0; i < arr.length; i++) {
-        const cell = ws2.getCell(rowIndex, 2 + i);
+        const cell = ws2.getCell(`${getColumnLetter(2 + i)}${rowIndex}`);
         cell.value = arr[i];
         cell.font = { name: "Arial", size: 10 };
         let horiz = "left";
@@ -2409,11 +2413,9 @@ async function exportExcel() {
         if (i === 0) horiz = "right";
         if (i === 2) horiz = "center";
         if (i === 4) wrap = true;
-        if (i === 4 || i === 7) indent = 0;
         if (i === 7) {
           horiz = "center";
           vert = "bottom";
-          indent = 0;
         }
         cell.alignment = {
           horizontal: horiz,
@@ -2444,37 +2446,47 @@ async function exportExcel() {
       cell.border = merged;
     };
 
-    // ws2.views = [{ state: "frozen", xSplit: 1, ySplit: headerRowIndex }];
-    // const spacer = ws2.addRow(["", "", "", "", "", "", "", "", ""]);
-    // spacer.height = 10;
-    // ws2.mergeCells(`B${spacer.number + 1}:D${spacer.number + 3}`);
-    // ws2.getCell(`B${spacer.number + 1}`).value = "Supervisor / Manager";
-    // ws2.getCell(`B${spacer.number + 1}`).alignment = {
-    //   horizontal: "center",
-    //   vertical: "middle",
-    // };
-    // ws2.mergeCells(`E${spacer.number + 1}:I${spacer.number + 3}`);
-    // ws2.getCell(`E${spacer.number + 1}`).value = "Prepared By";
-    // ws2.getCell(`E${spacer.number + 1}`).alignment = {
-    //   horizontal: "center",
-    //   vertical: "middle",
-    // };
-    // [
-    //   ws2.getCell(`B${spacer.number + 1}`),
-    //   ws2.getCell(`E${spacer.number + 1}`),
-    // ].forEach((cell) => {
-    //   cell.border = {
-    //     top: { style: "thin" },
-    //     left: { style: "thin" },
-    //     bottom: { style: "thin" },
-    //     right: { style: "thin" },
-    //   };
-    // });
+    const tableLastRow = rowIndex - 1;
+    const tableFirstCol = 2;
+    const tableLastCol = 2 + headers.length - 1;
+
+    for (let c = tableFirstCol; c <= tableLastCol; c++) {
+      setBorderSide(
+        ws2.getCell(`${getColumnLetter(c)}${headerRowIndex}`),
+        "top",
+        "thick",
+      );
+      setBorderSide(
+        ws2.getCell(`${getColumnLetter(c)}${tableLastRow}`),
+        "bottom",
+        "thick",
+      );
+    }
+    for (let r = headerRowIndex; r <= tableLastRow; r++) {
+      setBorderSide(
+        ws2.getCell(`${getColumnLetter(tableFirstCol)}${r}`),
+        "left",
+        "thick",
+      );
+      setBorderSide(
+        ws2.getCell(`${getColumnLetter(tableLastCol)}${r}`),
+        "right",
+        "thick",
+      );
+    }
+
     const buf = await wb2.xlsx.writeBuffer();
     const blob = new Blob([buf], {
       type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
     });
-    const fileName = (updateExisting && originalFileInput && originalFileInput.files && originalFileInput.files[0]) ? originalFileInput.files[0].name : "Daily_Report_Riko.xlsx";
+    const fileName =
+      updateExisting &&
+      originalFileInput &&
+      originalFileInput.files &&
+      originalFileInput.files[0]
+        ? originalFileInput.files[0].name
+        : "Daily_Report_Riko.xlsx";
+
     if (typeof saveAs === "function") {
       saveAs(blob, fileName);
     } else {
