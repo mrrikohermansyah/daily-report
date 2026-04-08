@@ -113,6 +113,34 @@ document.addEventListener("DOMContentLoaded", () => {
       if (s != null && e != null) lokasiOtherInput.setSelectionRange(s, e);
     });
   }
+
+  // Handle Update Existing File UI
+  const updateExistingFileCheckbox =
+    document.getElementById("updateExistingFile");
+  const originalFileContainer = document.getElementById(
+    "originalFileContainer",
+  );
+  const originalFileInput = document.getElementById("originalFileInput");
+  const selectedFileName = document.getElementById("selectedFileName");
+
+  if (updateExistingFileCheckbox) {
+    updateExistingFileCheckbox.addEventListener("change", () => {
+      originalFileContainer.style.display = updateExistingFileCheckbox.checked
+        ? "block"
+        : "none";
+    });
+  }
+
+  if (originalFileInput) {
+    originalFileInput.addEventListener("change", (e) => {
+      const file = e.target.files[0];
+      if (file) {
+        selectedFileName.textContent = file.name;
+      } else {
+        selectedFileName.textContent = "No file selected";
+      }
+    });
+  }
 });
 
 // Set Auth Persistence to SESSION (logout on tab close)
@@ -400,7 +428,9 @@ if (btnSignup) {
             await cred.user.updateProfile({ displayName: nameValue });
             await cred.user.reload();
             const updatedUser = auth.currentUser;
-            updateAuthStatus(`Login as ${updatedUser.displayName || updatedUser.email}`);
+            updateAuthStatus(
+              `Login as ${updatedUser.displayName || updatedUser.email}`,
+            );
           } catch (e) {
             console.error("Profile update error:", e);
           }
@@ -2220,95 +2250,153 @@ async function exportExcel() {
       d.quality || "Finish",
     ];
   });
+
+  const updateExisting = document.getElementById("updateExistingFile").checked;
+  const originalFileInput = document.getElementById("originalFileInput");
+
   if (window.ExcelJS && window.ExcelJS.Workbook) {
     const wb2 = new ExcelJS.Workbook();
-    const ws2 = wb2.addWorksheet(`Daily Report ${tgl}`);
-    ws2.pageSetup = {
-      orientation: "landscape",
-      fitToPage: true,
-      fitToWidth: 1,
-      fitToHeight: 0,
-    };
-    ws2.mergeCells("B1:D3");
-    ws2.getCell("B1").value = "PT MEINDO ELANG INDAH";
-    ws2.getCell("B1").font = {
-      bold: true,
-      size: 14,
-      color: { argb: "FF000000" },
-    };
-    ws2.getCell("B1").alignment = { vertical: "middle", horizontal: "left" };
-
-    ws2.mergeCells("E1:I3");
-    ws2.getCell("E1").value =
-      "No. Form: PAT-SIT-801-PO1\nRev.00 Tanggal: 28-01-2019";
-    ws2.getCell("E1").font = {
-      bold: true,
-      size: 10,
-      color: { argb: "FF000000" },
-    };
-    ws2.getCell("E1").alignment = {
-      vertical: "middle",
-      horizontal: "right",
-      wrapText: true,
-    };
-    ws2.mergeCells("B4:I4");
-    ws2.getCell("B4").value = "AKTIVITAS-AKTIVITAS IT / IT ACTIVITIES";
-    ws2.getCell("B4").font = {
-      bold: true,
-      size: 12,
-      color: { argb: "FF000000" },
-    };
-    ws2.getCell("B4").alignment = { vertical: "middle", horizontal: "center" };
-
-    ws2.mergeCells("B6:D6");
-    let userName = "Unknown User";
-    if (typeof currentUser !== "undefined" && currentUser !== null) {
-      userName = currentUser.displayName || currentUser.email || "Unknown User";
-    }
-    ws2.getCell("B6").value = `Nama / Name : ${userName}`;
-    ws2.getCell("A6").font = { bold: true, size: 10 };
-    ws2.getCell("A6").alignment = { vertical: "middle", horizontal: "left" };
-    ws2.mergeCells("E6:H6");
-    ws2.getCell("E6").value = `Period : ${tgl.slice(0, 7)}`;
-    ws2.getCell("E6").font = { bold: true, size: 10 };
-    ws2.getCell("E6").alignment = { vertical: "middle", horizontal: "right" };
-    const pxToWch = (px) => Math.round(px / 7);
+    let ws2;
+    let headerRowIndex = 10;
     const pxToPt = (px) => Math.round(px * 0.75);
-    ws2.getColumn(1).width = pxToWch(15);
-    ws2.getColumn(2).width = pxToWch(83);
-    ws2.getColumn(3).width = pxToWch(113);
-    ws2.getColumn(4).width = pxToWch(86);
-    ws2.getColumn(5).width = pxToWch(181);
-    ws2.getColumn(6).width = pxToWch(487);
-    ws2.getColumn(7).width = pxToWch(126);
-    ws2.getColumn(8).width = pxToWch(126);
-    ws2.getColumn(9).width = pxToWch(123);
-    const headerRowIndex = 10;
-    ws2.getRow(headerRowIndex).height = pxToPt(69);
-    const headers = header[0];
-    const aligns = [
-      { horizontal: "right", vertical: "middle", wrapText: true, indent: 1 },
-      { horizontal: "center", vertical: "middle", wrapText: true },
-      { horizontal: "center", vertical: "middle", wrapText: true },
-      { horizontal: "center", vertical: "middle", wrapText: true },
-      { horizontal: "center", vertical: "middle", wrapText: true },
-      { horizontal: "center", vertical: "middle", wrapText: true },
-      { horizontal: "center", vertical: "middle", wrapText: true },
-      { horizontal: "center", vertical: "middle", wrapText: true },
-    ];
-    for (let i = 0; i < headers.length; i++) {
-      const cell = ws2.getCell(headerRowIndex, 2 + i);
-      cell.value = headers[i];
-      cell.font = { name: "Arial", bold: true, size: 10 };
-      cell.alignment = aligns[i];
-      cell.border = {
-        top: { style: "thick" },
-        left: { style: "thick" },
-        bottom: { style: "thick" },
-        right: { style: "thick" },
-      };
+
+    if (updateExisting && originalFileInput.files.length > 0) {
+      try {
+        const file = originalFileInput.files[0];
+        const arrayBuffer = await file.arrayBuffer();
+        await wb2.xlsx.load(arrayBuffer);
+        ws2 = wb2.getWorksheet(1); // Assume first worksheet
+
+        // Find last data row by checking column B (Date) starting from row 11
+        let lastDataRow = 10;
+        ws2.eachRow({ includeEmpty: true }, (row, rowNumber) => {
+          if (rowNumber >= 10) {
+            const dateCellValue = row.getCell(2).value;
+            // If it's a header or has content that looks like a date/data, it's a data row
+            if (dateCellValue && dateCellValue !== "") {
+              // We check if it's not the footer/signature area
+              // Typically the signature area is further down and doesn't have column B filled with dates
+              if (
+                typeof dateCellValue === "string" &&
+                (dateCellValue.includes("/") ||
+                  dateCellValue.includes("-") ||
+                  rowNumber === 10)
+              ) {
+                lastDataRow = rowNumber;
+              } else if (dateCellValue instanceof Date) {
+                lastDataRow = rowNumber;
+              }
+            }
+          }
+        });
+        headerRowIndex = 10; // Keep header row index for styling reference
+        var rowIndex = lastDataRow + 1;
+      } catch (err) {
+        console.error("Error loading original file:", err);
+        showToast(
+          "error",
+          "Failed to load original file. Exporting to new file instead.",
+        );
+        // Fallback to new file if loading fails
+        ws2 = wb2.addWorksheet(`Daily Report ${tgl}`);
+        setupNewWorksheet(ws2, tgl, headerRowIndex, header[0]);
+        var rowIndex = headerRowIndex + 1;
+      }
+    } else {
+      ws2 = wb2.addWorksheet(`Daily Report ${tgl}`);
+      setupNewWorksheet(ws2, tgl, headerRowIndex, header[0]);
+      var rowIndex = headerRowIndex + 1;
     }
-    let rowIndex = headerRowIndex + 1;
+
+    function setupNewWorksheet(ws, dateStr, hRowIdx, headers) {
+      ws.pageSetup = {
+        orientation: "landscape",
+        fitToPage: true,
+        fitToWidth: 1,
+        fitToHeight: 0,
+      };
+      ws.mergeCells("B1:D3");
+      ws.getCell("B1").value = "PT MEINDO ELANG INDAH";
+      ws.getCell("B1").font = {
+        bold: true,
+        size: 14,
+        color: { argb: "FF000000" },
+      };
+      ws.getCell("B1").alignment = { vertical: "middle", horizontal: "left" };
+
+      ws.mergeCells("E1:I3");
+      ws.getCell("E1").value =
+        "No. Form: PAT-SIT-801-PO1\nRev.00 Tanggal: 28-01-2019";
+      ws.getCell("E1").font = {
+        bold: true,
+        size: 10,
+        color: { argb: "FF000000" },
+      };
+      ws.getCell("E1").alignment = {
+        vertical: "middle",
+        horizontal: "right",
+        wrapText: true,
+      };
+
+      ws.mergeCells("B4:I4");
+      ws.getCell("B4").value = "AKTIVITAS-AKTIVITAS IT / IT ACTIVITIES";
+      ws.getCell("B4").font = {
+        bold: true,
+        size: 12,
+        color: { argb: "FF000000" },
+      };
+      ws.getCell("B4").alignment = { vertical: "middle", horizontal: "center" };
+
+      ws.mergeCells("B6:D6");
+      let uName = "Unknown User";
+      if (typeof currentUser !== "undefined" && currentUser !== null) {
+        uName = currentUser.displayName || currentUser.email || "Unknown User";
+      }
+      ws.getCell("B6").value = `Nama / Name : ${uName}`;
+      ws.getCell("A6").font = { bold: true, size: 10 };
+      ws.getCell("A6").alignment = { vertical: "middle", horizontal: "left" };
+
+      ws.mergeCells("E6:H6");
+      ws.getCell("E6").value = `Period : ${dateStr.slice(0, 7)}`;
+      ws.getCell("E6").font = { bold: true, size: 10 };
+      ws.getCell("E6").alignment = { vertical: "middle", horizontal: "right" };
+
+      const pxToWch = (px) => Math.round(px / 7);
+      ws.getColumn(1).width = pxToWch(15);
+      ws.getColumn(2).width = pxToWch(83);
+      ws.getColumn(3).width = pxToWch(113);
+      ws.getColumn(4).width = pxToWch(86);
+      ws.getColumn(5).width = pxToWch(181);
+      ws.getColumn(6).width = pxToWch(487);
+      ws.getColumn(7).width = pxToWch(126);
+      ws.getColumn(8).width = pxToWch(126);
+      ws.getColumn(9).width = pxToWch(123);
+
+      ws.getRow(hRowIdx).height = pxToPt(69);
+      const aligns = [
+        { horizontal: "right", vertical: "middle", wrapText: true, indent: 1 },
+        { horizontal: "center", vertical: "middle", wrapText: true },
+        { horizontal: "center", vertical: "middle", wrapText: true },
+        { horizontal: "center", vertical: "middle", wrapText: true },
+        { horizontal: "center", vertical: "middle", wrapText: true },
+        { horizontal: "center", vertical: "middle", wrapText: true },
+        { horizontal: "center", vertical: "middle", wrapText: true },
+        { horizontal: "center", vertical: "middle", wrapText: true },
+      ];
+      for (let i = 0; i < headers.length; i++) {
+        const cell = ws.getCell(hRowIdx, 2 + i);
+        cell.value = headers[i];
+        cell.font = { name: "Arial", bold: true, size: 10 };
+        cell.alignment = aligns[i];
+        cell.border = {
+          top: { style: "thick" },
+          left: { style: "thick" },
+          bottom: { style: "thick" },
+          right: { style: "thick" },
+        };
+      }
+    }
+
     rows.forEach((arr) => {
       for (let i = 0; i < arr.length; i++) {
         const cell = ws2.getCell(rowIndex, 2 + i);
