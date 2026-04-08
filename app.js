@@ -2347,6 +2347,7 @@ async function exportExcel() {
     const wb2 = new ExcelJS.Workbook();
     let ws2;
     let headerRowIndex = 10;
+    let rowIndex = headerRowIndex + 1;
     const pxToPt = (px) => Math.round(px * 0.75);
 
     if (updateExisting && originalFileInput.files.length > 0) {
@@ -2374,7 +2375,7 @@ async function exportExcel() {
         }
         headerRowIndex = detectedHeaderRow || 10;
 
-        let rowIndex = headerRowIndex + 1;
+        rowIndex = headerRowIndex + 1;
         const rowHasData = (r) => {
           for (let c = 2; c <= 9; c++) {
             // Check columns B to I
@@ -2393,12 +2394,12 @@ async function exportExcel() {
         // Fallback to new file if loading fails
         ws2 = wb2.addWorksheet(`Daily Report ${tgl}`);
         setupNewWorksheet(ws2, tgl, headerRowIndex, header[0], pxToPt);
-        var rowIndex = headerRowIndex + 1;
+        rowIndex = headerRowIndex + 1;
       }
     } else {
       ws2 = wb2.addWorksheet(`Daily Report ${tgl}`);
       setupNewWorksheet(ws2, tgl, headerRowIndex, header[0], pxToPt);
-      var rowIndex = headerRowIndex + 1;
+      rowIndex = headerRowIndex + 1;
     }
 
     rows.forEach((arr) => {
@@ -2448,7 +2449,7 @@ async function exportExcel() {
 
     const tableLastRow = rowIndex - 1;
     const tableFirstCol = 2;
-    const tableLastCol = 2 + headers.length - 1;
+    const tableLastCol = 2 + header[0].length - 1;
 
     for (let c = tableFirstCol; c <= tableLastCol; c++) {
       setBorderSide(
