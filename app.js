@@ -2367,7 +2367,8 @@ async function exportExcel() {
 
         let detectedHeaderRow = null;
         for (let r = 1; r <= 30; r++) {
-          const val = ws2.getCell(`${getColumnLetter(2)}${r}`).value; // Check column B
+          const cell = ws2.getRow(r).getCell(2); // Check column B
+          const val = cell.value;
           if (typeof val === "string" && val.toLowerCase().includes("tgl")) {
             detectedHeaderRow = r;
             break;
@@ -2379,12 +2380,33 @@ async function exportExcel() {
         const rowHasData = (r) => {
           for (let c = 2; c <= 9; c++) {
             // Check columns B to I
-            const v = ws2.getCell(`${getColumnLetter(c)}${r}`).value;
+            const v = ws2.getRow(r).getCell(c).value;
             if (v !== undefined && v !== null && v !== "") return true;
           }
           return false;
         };
+        // Cari baris kosong pertama setelah header
         while (rowHasData(rowIndex)) rowIndex++;
+
+        // User ingin 2 baris kosong (gap) dengan format yang sama setelah aktivitas terakhir
+        const addEmptyRowWithFormat = (r) => {
+          const row = ws2.getRow(r);
+          row.height = pxToPt(20);
+          for (let c = 2; c <= 9; c++) {
+            const cell = row.getCell(c);
+            cell.border = {
+              top: { style: "hair" },
+              left: { style: "hair" },
+              bottom: { style: "hair" },
+              right: { style: "hair" },
+            };
+          }
+        };
+
+        addEmptyRowWithFormat(rowIndex); // Baris kosong 1
+        rowIndex++;
+        addEmptyRowWithFormat(rowIndex); // Baris kosong 2
+        rowIndex++;
       } catch (err) {
         console.error("Error loading original file:", err);
         showToast(
@@ -2403,8 +2425,9 @@ async function exportExcel() {
     }
 
     rows.forEach((arr) => {
+      const row = ws2.getRow(rowIndex);
       for (let i = 0; i < arr.length; i++) {
-        const cell = ws2.getCell(`${getColumnLetter(2 + i)}${rowIndex}`);
+        const cell = row.getCell(2 + i);
         cell.value = arr[i];
         cell.font = { name: "Arial", size: 10 };
         let horiz = "left";
@@ -2431,7 +2454,7 @@ async function exportExcel() {
           right: { style: "hair" },
         };
       }
-      ws2.getRow(rowIndex).height = pxToPt(20);
+      row.height = pxToPt(20);
       rowIndex += 1;
     });
 
@@ -2452,28 +2475,12 @@ async function exportExcel() {
     const tableLastCol = 2 + header[0].length - 1;
 
     for (let c = tableFirstCol; c <= tableLastCol; c++) {
-      setBorderSide(
-        ws2.getCell(`${getColumnLetter(c)}${headerRowIndex}`),
-        "top",
-        "thick",
-      );
-      setBorderSide(
-        ws2.getCell(`${getColumnLetter(c)}${tableLastRow}`),
-        "bottom",
-        "thick",
-      );
+      setBorderSide(ws2.getRow(headerRowIndex).getCell(c), "top", "thick");
+      setBorderSide(ws2.getRow(tableLastRow).getCell(c), "bottom", "thick");
     }
     for (let r = headerRowIndex; r <= tableLastRow; r++) {
-      setBorderSide(
-        ws2.getCell(`${getColumnLetter(tableFirstCol)}${r}`),
-        "left",
-        "thick",
-      );
-      setBorderSide(
-        ws2.getCell(`${getColumnLetter(tableLastCol)}${r}`),
-        "right",
-        "thick",
-      );
+      setBorderSide(ws2.getRow(r).getCell(tableFirstCol), "left", "thick");
+      setBorderSide(ws2.getRow(r).getCell(tableLastCol), "right", "thick");
     }
 
     const buf = await wb2.xlsx.writeBuffer();
