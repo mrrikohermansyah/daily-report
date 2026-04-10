@@ -2337,8 +2337,6 @@ async function exportExcel() {
       d.pengguna || "",
       dur != null ? formatDuration(dur) : "",
       d.quality || "Finish",
-      "",
-      "",
     ];
   });
 
@@ -2404,11 +2402,6 @@ async function exportExcel() {
             };
           }
         };
-
-        addEmptyRowWithFormat(rowIndex); // Baris kosong 1
-        rowIndex++;
-        addEmptyRowWithFormat(rowIndex); // Baris kosong 2
-        rowIndex++;
       } catch (err) {
         console.error("Error loading original file:", err);
         showToast(
@@ -2459,6 +2452,23 @@ async function exportExcel() {
       row.height = pxToPt(20);
       rowIndex += 1;
     });
+
+    // Tambahkan 2 baris kosong setelah daftar activity
+    for (let gap = 0; gap < 2; gap++) {
+      const row = ws2.getRow(rowIndex);
+      row.height = pxToPt(20);
+      for (let c = 2; c <= 9; c++) {
+        const cell = row.getCell(c);
+        cell.value = "";
+        cell.border = {
+          top: { style: "hair" },
+          left: { style: "hair" },
+          bottom: { style: "hair" },
+          right: { style: "hair" },
+        };
+      }
+      rowIndex += 1;
+    }
 
     const setBorderSide = (cell, side, style) => {
       const b = cell.border || {};
