@@ -2337,6 +2337,8 @@ async function exportExcel() {
       d.pengguna || "",
       dur != null ? formatDuration(dur) : "",
       d.quality || "Finish",
+      "",
+      "",
     ];
   });
 
