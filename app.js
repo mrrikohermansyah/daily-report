@@ -858,10 +858,8 @@ function getRelativeDateLabel(dateStr) {
   return `(${dateStr})`;
 }
 
-function updateHistoryTitle(count, dateStr) {
-  const titleEl = document.querySelector("#card_history .card-title"); // Need to add ID to card
-  // Or find by text content if no ID, but adding ID is better.
-  // Let's use the selector for now based on structure
+function updateHistoryTitle(count, dateStr, totalMinutes = 0) {
+  const titleEl = document.querySelector("#card_history .card-title");
   const section = historyContainer.closest("section");
   if (!section) return;
   const title = section.querySelector(".card-title");
@@ -870,10 +868,15 @@ function updateHistoryTitle(count, dateStr) {
   const dateLabel = getRelativeDateLabel(dateStr);
   const activityWord = count === 1 ? "Activity" : "Activities";
 
+  let minutesText = "";
+  if (totalMinutes > 0) {
+    minutesText = ` (${totalMinutes}m)`;
+  }
+
   if (count === 0) {
     title.textContent = `Activities Done ${dateLabel}`;
   } else {
-    title.textContent = `${count} ${activityWord} Done ${dateLabel}`;
+    title.textContent = `${count} ${activityWord} Done${minutesText} ${dateLabel}`;
   }
 }
 
@@ -890,8 +893,13 @@ function renderHistoryList() {
     return bt - at;
   });
 
+  const totalMinutes = sorted.reduce((sum, d) => {
+    const dur = getDurationMinutes(d);
+    return sum + (dur || 0);
+  }, 0);
+
   const dateStr = historyDateInput.value || todayStr();
-  updateHistoryTitle(sorted.length, dateStr);
+  updateHistoryTitle(sorted.length, dateStr, totalMinutes);
 
   const slice = sorted.slice(0, historyTodayLimit);
   if (slice.length === 0) {
