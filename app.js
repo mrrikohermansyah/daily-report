@@ -141,6 +141,15 @@ document.addEventListener("DOMContentLoaded", () => {
       }
     });
   }
+
+  // Collapsible Card Logic
+  const toggleBtn = document.getElementById("toggleInputReport");
+  const cardInput = document.getElementById("card_input");
+  if (toggleBtn && cardInput) {
+    toggleBtn.addEventListener("click", () => {
+      cardInput.classList.toggle("collapsed");
+    });
+  }
 });
 
 // Set Auth Persistence to SESSION (logout on tab close)
@@ -434,7 +443,10 @@ if (loginForm) {
     try {
       await auth.signInWithEmailAndPassword(email, password);
     } catch (e) {
-      showToast("error", e && e.message ? e.message : "Failed to login");
+      let msg = e && e.message ? e.message : "Failed to login";
+      if (e && e.code === "auth/requests-from-referer-null-are-blocked")
+        msg = "Your access are blocked";
+      showToast("error", msg);
     }
   });
 } else if (btnLogin) {
@@ -444,7 +456,10 @@ if (loginForm) {
     try {
       await auth.signInWithEmailAndPassword(email, password);
     } catch (e) {
-      showToast("error", e && e.message ? e.message : "Failed to login");
+      let msg = e && e.message ? e.message : "Failed to login";
+      if (e && e.code === "auth/requests-from-referer-null-are-blocked")
+        msg = "Your access are blocked";
+      showToast("error", msg);
     }
   });
 }
@@ -474,10 +489,10 @@ if (btnLoginGoogle) {
     try {
       await auth.signInWithPopup(provider);
     } catch (e) {
-      showToast(
-        "error",
-        e && e.message ? e.message : "Failed to login with Google",
-      );
+      let msg = e && e.message ? e.message : "Failed to login with Google";
+      if (e && e.code === "auth/requests-from-referer-null-are-blocked")
+        msg = "Your access are blocked";
+      showToast("error", msg);
     }
   });
 }
@@ -537,7 +552,9 @@ if (btnSignup) {
     } catch (e) {
       isSignupInProgress = false;
       let msg = e && e.message ? e.message : "Failed to create account";
-      if (e && e.code === "auth/operation-not-allowed")
+      if (e && e.code === "auth/requests-from-referer-null-are-blocked")
+        msg = "Your access are blocked";
+      else if (e && e.code === "auth/operation-not-allowed")
         msg = "Email/Password sign-in method not enabled in Firebase Console";
       else if (e && e.code === "auth/email-already-in-use") {
         if (loginName) {
@@ -613,10 +630,10 @@ if (btnReset) {
       await auth.sendPasswordResetEmail(email);
       showToast("success", "Reset password link sent to email");
     } catch (e) {
-      showToast(
-        "error",
-        e && e.message ? e.message : "Failed to send reset link",
-      );
+      let msg = e && e.message ? e.message : "Failed to send reset link";
+      if (e && e.code === "auth/requests-from-referer-null-are-blocked")
+        msg = "Your access are blocked";
+      showToast("error", msg);
     }
   });
 }
@@ -640,6 +657,24 @@ function setUIAuthState() {
   }
   const btnExport = document.getElementById("btn_export_excel");
   if (btnExport) btnExport.disabled = !logged;
+  const exportBar = document.getElementById("exportBar");
+  if (exportBar) exportBar.style.display = logged ? "block" : "none";
+
+  // Export Bar Expandable Logic
+  const toggleExportBtn = document.getElementById("toggleExportBar");
+  if (toggleExportBtn && exportBar) {
+    toggleExportBtn.addEventListener("click", () => {
+      exportBar.classList.toggle("collapsed");
+      const icon = toggleExportBtn.querySelector("i");
+      if (icon) {
+        if (exportBar.classList.contains("collapsed")) {
+          icon.className = "fas fa-cog";
+        } else {
+          icon.className = "fas fa-times";
+        }
+      }
+    });
+  }
 }
 
 auth.onAuthStateChanged((user) => {
@@ -692,6 +727,8 @@ function loadDraftsRealtime() {
     if (historyContainer) historyContainer.innerHTML = "";
     const statusEl = document.getElementById("drafts_status");
     if (statusEl) statusEl.textContent = "Please login to view drafts";
+    const cardActive = document.getElementById("card_active");
+    if (cardActive) cardActive.style.display = "none";
     return null;
   }
   const tanggal = todayStr();
@@ -723,6 +760,12 @@ function loadDraftsRealtime() {
           }
         }
       });
+
+      // Toggle Section Visibility
+      const cardActive = document.getElementById("card_active");
+      if (cardActive) {
+        cardActive.style.display = activeCount > 0 ? "block" : "none";
+      }
 
       // Hapus item yang tidak ada di snapshot
       const allItems = Array.from(
@@ -824,6 +867,17 @@ async function loadHistoryForDate(dateStr) {
         jam_selesai: doc.data().jam_selesai || "", // Ensure jam_selesai exists
       });
     });
+
+    // Auto Collapse Input Report if history exists
+    const cardInput = document.getElementById("card_input");
+    if (cardInput) {
+      if (historyData.length > 0) {
+        cardInput.classList.add("collapsed");
+      } else {
+        cardInput.classList.remove("collapsed");
+      }
+    }
+
     renderHistoryList();
   } catch (err) {
     historyContainer.innerHTML =
