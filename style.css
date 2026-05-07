@@ -1089,7 +1089,7 @@ body {
   }
 
   .export-main-controls {
-    justify-content: space-between;
+    justify-content: flex-end;
   }
 
   .export-main-controls input[type="date"] {
