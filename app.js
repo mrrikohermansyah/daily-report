@@ -240,6 +240,17 @@ function handleIdleTimeout() {
   document.addEventListener(evt, resetIdleTimer, { passive: true });
 });
 
+// Prevent Pinch-to-Zoom (for iOS/Android PWA)
+document.addEventListener(
+  "touchstart",
+  (e) => {
+    if (e.touches.length > 1) {
+      e.preventDefault();
+    }
+  },
+  { passive: false },
+);
+
 // =========================
 // HELPER
 // =========================
