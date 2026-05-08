@@ -780,8 +780,27 @@ button:active {
   background: var(--success-hover);
 }
 
-#btn_login_google {
+.btn-google {
+  background: var(--surface);
+  color: var(--text);
+  border: 1px solid var(--border);
   width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 12px;
+  font-weight: 600;
+  transition: all 0.2s;
+}
+.btn-google:hover {
+  background: var(--surface-2);
+  border-color: var(--muted);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+.btn-google i {
+  color: #4285f4; /* Google Blue */
+  font-size: 18px;
 }
 
 /* Version Label */
