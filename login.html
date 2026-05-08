@@ -1,11 +1,11 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="id">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="theme-color" content="#007bff" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
-    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="default" />
     <meta name="apple-mobile-web-app-title" content="Daily Report" />
     <title>Login - Daily Report</title>
@@ -93,7 +93,7 @@
               <div class="signup-actions-row">
                 <button
                   type="button"
-                  class="btn-success create-account-btn"
+                  class="btn-success btn-lg create-account-btn"
                   id="btn_signup"
                 >
                   Create New Account
@@ -115,7 +115,7 @@
             <div style="margin-top: 10px">
               <button
                 type="button"
-                class="btn-google"
+                class="btn-google btn-lg"
                 id="btn_login_google"
               >
                 <i class="fab fa-google"></i> Login with Google
@@ -156,7 +156,7 @@
             .then((registration) => {
               console.log(
                 "ServiceWorker registration successful with scope: ",
-                registration.scope
+                registration.scope,
               );
             })
             .catch((err) => {

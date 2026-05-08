@@ -772,8 +772,6 @@ button:active {
   background: var(--success);
   color: white;
   margin-top: 20px;
-  padding: 12px 24px;
-  font-size: 16px;
   width: 100%;
 }
 .create-account-btn:hover {
@@ -789,8 +787,6 @@ button:active {
   align-items: center;
   justify-content: center;
   gap: 12px;
-  padding: 12px;
-  font-weight: 600;
   transition: all 0.2s;
 }
 .btn-google:hover {
@@ -800,7 +796,7 @@ button:active {
 }
 .btn-google i {
   color: #4285f4; /* Google Blue */
-  font-size: 18px;
+  font-size: 20px; /* Match btn-lg font size */
 }
 
 /* Version Label */
@@ -854,8 +850,14 @@ button:active {
   display: flex;
   align-items: stretch;
   justify-content: center;
-  gap: 8px;
-  margin-top: 20px;
+  gap: 0; /* No gap by default */
+  margin-top: 0;
+  width: 100%;
+  transition: gap 0.25s ease;
+}
+
+#loginForm.signup-mode .signup-actions-row {
+  gap: 8px; /* Gap only when cancel button is visible */
 }
 
 .signup-actions-row .btn-cancel-signup {
@@ -888,8 +890,8 @@ button:active {
 
 .signup-actions-row .create-account-btn {
   flex: 1;
-  width: auto;
-  margin-top: 0;
+  width: 100%; /* Ensure it tries to take full width */
+  margin-top: 20px; /* Match margin-top of other elements in the stack */
 }
 
 /* Fix for iOS Date & Time Picker */
