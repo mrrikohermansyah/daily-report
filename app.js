@@ -476,6 +476,26 @@ if (loginForm) {
 }
 
 if (btnLogout) {
+  // Utility for Title Case (capitalize each word)
+  function toTitleCase(str) {
+    if (!str) return "";
+    return str.replace(/(^|\s)\S/g, (c) => c.toUpperCase());
+  }
+
+  // Handle auto-capitalization for name/user inputs
+  const nameInputs = ["pengguna", "loginName", "lokasi_other"];
+  nameInputs.forEach((id) => {
+    const el = document.getElementById(id);
+    if (el) {
+      el.addEventListener("input", (e) => {
+        const start = e.target.selectionStart;
+        const end = e.target.selectionEnd;
+        e.target.value = toTitleCase(e.target.value);
+        e.target.setSelectionRange(start, end);
+      });
+    }
+  });
+
   btnLogout.addEventListener("click", async () => {
     try {
       const res = await Swal.fire({
@@ -485,6 +505,8 @@ if (btnLogout) {
         showCancelButton: true,
         confirmButtonText: "Logout",
         cancelButtonText: "Cancel",
+        confirmButtonColor: "var(--danger)",
+        cancelButtonColor: "var(--secondary-hover)",
       });
       if (!res.isConfirmed) return;
       await auth.signOut();
@@ -990,6 +1012,8 @@ async function undoActivity(historyId) {
     confirmButtonText: "Yes, Undo!",
     cancelButtonText: "Cancel",
     scrollbarPadding: false,
+    confirmButtonColor: "var(--primary)",
+    cancelButtonColor: "var(--secondary-hover)",
   });
 
   if (!result.isConfirmed) return;
@@ -1630,7 +1654,7 @@ function renderActivitySummary(d, container) {
     ${
       d.tanggal === todayStr()
         ? `<div class="summary-footer">
-             <button type="button" class="btn-danger btn-sm" onclick="undoActivity('${d.id}')">
+             <button type="button" class="btn-undo" onclick="undoActivity('${d.id}')">
                <i class="fas fa-undo"></i> Undo
              </button>
            </div>`
@@ -1885,9 +1909,10 @@ if (activitiesContainer) {
         text: "This activity will be permanently deleted.",
         icon: "warning",
         showCancelButton: true,
-        confirmButtonColor: "#dc2626",
+        confirmButtonColor: "var(--danger)",
         confirmButtonText: "Yes, Delete!",
         cancelButtonText: "Cancel",
+        cancelButtonColor: "var(--secondary-hover)",
         scrollbarPadding: false,
       });
 

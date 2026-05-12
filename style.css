@@ -512,13 +512,59 @@ button:active {
   color: var(--danger);
 }
 
+.btn-logout {
+  background: transparent;
+  color: var(--danger);
+  border: 1px solid var(--danger);
+  padding: 6px 12px;
+  font-size: 14px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transition: all 0.2s;
+}
+
+.btn-logout:hover {
+  background: var(--danger);
+  color: #ffffff;
+}
+
+.btn-logout i {
+  font-size: 14px;
+}
+
+.btn-undo {
+  background: transparent;
+  color: var(--primary);
+  border: 1px solid var(--primary);
+  padding: 6px 12px;
+  font-size: 13px;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border-radius: 4px;
+  transition: all 0.2s;
+}
+
+.btn-undo:hover {
+  background: var(--primary);
+  color: #ffffff;
+}
+
+.btn-undo i {
+  font-size: 12px;
+}
+
 .btn-block {
   width: 100%;
 }
 .btn-lg {
-  padding: 12px 20px;
-  font-size: 20px;
-  font-weight: 700;
+  padding: 14px 24px;
+  font-size: 17px;
+  font-weight: 600;
+  letter-spacing: -0.1px;
 }
 
 /* Checkbox Chips */
@@ -779,24 +825,33 @@ button:active {
 }
 
 .btn-google {
-  background: var(--surface);
-  color: var(--text);
-  border: 1px solid var(--border);
+  background: #ffffff;
+  color: #3c4043;
+  border: 1px solid #dadce0;
   width: 100%;
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 12px;
-  transition: all 0.2s;
+  gap: 0; /* Gap managed by SVG margin */
+  transition:
+    background-color 0.2s,
+    box-shadow 0.2s,
+    border-color 0.2s;
+  font-family: "Google Sans", Roboto, Arial, sans-serif;
+  letter-spacing: 0.25px;
 }
 .btn-google:hover {
-  background: var(--surface-2);
-  border-color: var(--muted);
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  background: #f8f9fa;
+  border-color: #d2d4d7;
+  box-shadow: 0 1px 2px 0 rgba(60, 64, 67, 0.3), 0 1px 3px 1px rgba(60, 64, 67, 0.15);
 }
-.btn-google i {
-  color: #4285f4; /* Google Blue */
-  font-size: 20px; /* Match btn-lg font size */
+.btn-google:active {
+  background: #eeeeee;
+}
+/* No longer using .btn-google i as we use SVG */
+[data-theme="dark"] .btn-google {
+  background: #ffffff; /* Google buttons usually stay white or go dark blue, keeping it standard */
+  color: #3c4043;
 }
 
 /* Version Label */
@@ -851,7 +906,7 @@ button:active {
   align-items: stretch;
   justify-content: center;
   gap: 0; /* No gap by default */
-  margin-top: 0;
+  margin-top: 20px; /* Moved from create-account-btn */
   width: 100%;
   transition: gap 0.25s ease;
 }
@@ -865,13 +920,15 @@ button:active {
   max-width: 0;
   opacity: 0;
   pointer-events: none;
-  padding-left: 0;
-  padding-right: 0;
+  padding: 0;
   white-space: nowrap;
   background: var(--danger);
   color: #fff;
   border: none;
   line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   transition:
     flex-basis 0.25s ease,
     max-width 0.25s ease,
@@ -884,14 +941,14 @@ button:active {
   max-width: 15%;
   opacity: 1;
   pointer-events: auto;
-  padding: 5px 5px;
-  font-size: 30px;
+  padding: 10px;
+  font-size: 24px;
 }
 
 .signup-actions-row .create-account-btn {
   flex: 1;
   width: 100%; /* Ensure it tries to take full width */
-  margin-top: 20px; /* Match margin-top of other elements in the stack */
+  margin-top: 0; /* Margin moved to parent row */
 }
 
 /* Fix for iOS Date & Time Picker */
@@ -926,15 +983,159 @@ input[type="time"]::-webkit-date-and-time-value {
     grid-template-columns: 1fr;
     text-align: center;
     padding-top: 40px;
+    gap: 20px;
+    min-height: calc(100vh - 40px);
   }
 
   .login-left {
     padding-right: 0;
-    margin-bottom: 40px;
+    margin-bottom: 20px;
   }
 
   .login-brand-large {
     font-size: 2.5rem;
+  }
+}
+
+/* Extra Small Devices (Phones) */
+@media (max-width: 480px) {
+  /* Prevent scroll on body and container for login page */
+  body:has(.login-grid) {
+    overflow: hidden;
+    height: 100vh;
+    height: 100dvh;
+    position: fixed;
+    width: 100%;
+  }
+
+  .login-grid {
+    padding: 10px;
+    padding-top: 10px;
+    gap: 10px;
+    height: 100vh;
+    height: 100dvh;
+    min-height: auto;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    overflow: hidden; /* Prevent internal scroll */
+  }
+
+  .login-left {
+    margin-bottom: 10px;
+    flex-shrink: 0;
+  }
+
+  .login-brand-large {
+    font-size: 1.8rem;
+    margin-bottom: 0;
+  }
+
+  .login-subtitle {
+    font-size: 0.95rem;
+    line-height: 1.2;
+  }
+
+  .login-right {
+    width: 100%;
+    flex-shrink: 1;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+  }
+
+  .login-card {
+    padding: 12px;
+    max-width: 100%;
+    margin-bottom: 0;
+  }
+
+  .form-group {
+    margin-bottom: 8px;
+  }
+
+  .form-control,
+  .btn-lg {
+    padding: 10px 16px;
+    font-size: 15px;
+    min-height: 44px;
+  }
+
+  .btn-lg {
+    font-size: 16px;
+    font-weight: 600;
+  }
+
+  .divider {
+    margin: 10px 0;
+  }
+
+  .create-account-btn {
+    margin-top: 10px;
+  }
+
+  .signup-actions-row {
+    margin-top: 10px;
+  }
+
+  .signup-actions-row .create-account-btn {
+    margin-top: 0;
+  }
+
+  #loginForm.signup-mode .signup-actions-row .btn-cancel-signup {
+    padding: 8px;
+    font-size: 20px;
+  }
+
+  /* Reduce margin for the text below login card */
+  .login-right > div:last-child {
+    margin-top: 8px !important;
+    font-size: 11px !important;
+  }
+
+  /* Adjust theme toggle for mobile login */
+  .container > div[style*="position: absolute"] {
+    top: 10px !important;
+    right: 10px !important;
+  }
+}
+
+/* SweetAlert2 Custom Styling for Compactness */
+.swal2-popup {
+  padding: 1rem !important;
+  width: 320px !important; /* Smaller width */
+  border-radius: var(--radius-l) !important;
+}
+
+.swal2-title {
+  font-size: 1.25rem !important;
+  padding: 0.5rem 0 0 0 !important;
+}
+
+.swal2-html-container {
+  font-size: 0.9rem !important;
+  margin: 0.5rem 0 0 0 !important;
+}
+
+.swal2-icon {
+  transform: scale(0.7); /* Shrink icons */
+  margin: 0 auto !important;
+}
+
+.swal2-actions {
+  margin-top: 1rem !important;
+}
+
+.swal2-styled {
+  padding: 8px 20px !important;
+  font-size: 0.9rem !important;
+  font-weight: 600 !important;
+}
+
+@media (max-width: 480px) {
+  .swal2-popup {
+    width: 280px !important; /* Even smaller on mobile */
   }
 }
 
@@ -1170,7 +1371,8 @@ body {
   }
 
   .btn-lg {
-    font-size: 18px;
+    font-size: 16px;
+    font-weight: 600;
   }
 
   .actions button {
