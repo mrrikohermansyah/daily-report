@@ -174,8 +174,8 @@ function showToast(icon, title, text = "") {
       toast.addEventListener("mouseenter", Swal.stopTimer);
       toast.addEventListener("mouseleave", Swal.resumeTimer);
     },
-    showClass: { popup: "swal2-animate-fade-up-in" },
-    hideClass: { popup: "swal2-animate-fade-up-out" },
+    showClass: { popup: "swal2-toast-show" },
+    hideClass: { popup: "swal2-toast-hide" },
   });
 }
 
