@@ -161,6 +161,17 @@ document.addEventListener("DOMContentLoaded", () => {
       window.location.reload();
     });
   }
+
+  const refreshBtnHeader = document.getElementById("refreshPageHeader");
+  if (refreshBtnHeader) {
+    if (isIOS()) {
+      refreshBtnHeader.style.display = "flex";
+      document.body.classList.add("is-ios");
+    }
+    refreshBtnHeader.addEventListener("click", () => {
+      window.location.reload();
+    });
+  }
 });
 
 // Set Auth Persistence to SESSION (logout on tab close)

@@ -167,6 +167,18 @@ h6 {
   position: relative;
 }
 
+/* Container for vertical alignment on iOS if needed */
+.header-button-stack {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+body.is-ios .header-button-stack {
+  flex-direction: column;
+  gap: 4px;
+}
+
 .user-status {
   font-size: 14px;
   font-weight: 600;
