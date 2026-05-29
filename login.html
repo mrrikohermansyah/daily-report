@@ -14,6 +14,10 @@
     <link rel="apple-touch-icon" sizes="180x180" href="logo-180.png" />
     <link rel="apple-touch-icon" sizes="192x192" href="logo-192.png" />
     <link rel="stylesheet" href="style.css" />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+    />
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
@@ -22,7 +26,10 @@
 
   <body>
     <div class="container">
-      <div style="position: absolute; top: 20px; right: 20px; z-index: 100">
+      <div
+        style="position: absolute; top: 20px; right: 20px; z-index: 100"
+        class="header-button-stack"
+      >
         <button class="theme-toggle" id="themeToggle" title="Switch Theme">
           <svg
             xmlns="http://www.w3.org/2000/svg"
@@ -35,6 +42,14 @@
           >
             <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
           </svg>
+        </button>
+        <button
+          class="theme-toggle"
+          id="refreshPageHeader"
+          title="Refresh Page"
+          style="display: none"
+        >
+          <i class="fas fa-sync-alt"></i>
         </button>
       </div>
       <main class="login-grid">
