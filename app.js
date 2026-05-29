@@ -150,6 +150,17 @@ document.addEventListener("DOMContentLoaded", () => {
       cardInput.classList.toggle("collapsed");
     });
   }
+
+  // Refresh Page logic for iOS
+  const refreshBtn = document.getElementById("refreshPage");
+  if (refreshBtn) {
+    if (isIOS()) {
+      refreshBtn.style.display = "flex";
+    }
+    refreshBtn.addEventListener("click", () => {
+      window.location.reload();
+    });
+  }
 });
 
 // Set Auth Persistence to SESSION (logout on tab close)
@@ -281,6 +292,21 @@ function nowHM() {
 function todayStr() {
   const t = new Date();
   return `${t.getFullYear()}-${pad(t.getMonth() + 1)}-${pad(t.getDate())}`;
+}
+
+function isIOS() {
+  return (
+    [
+      "iPad Simulator",
+      "iPhone Simulator",
+      "iPod Simulator",
+      "iPad",
+      "iPhone",
+      "iPod",
+    ].includes(navigator.platform) ||
+    // iPad on iOS 13 detection
+    (navigator.userAgent.includes("Mac") && "ontouchend" in document)
+  );
 }
 
 // Helper to convert column index to letter (e.g., 1 -> A, 2 -> B)

@@ -1254,6 +1254,37 @@ input[type="time"]::-webkit-date-and-time-value {
   color: #ffffff;
 }
 
+.btn-refresh-page {
+  position: absolute;
+  top: -82px;
+  right: 16px;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: var(--primary);
+  border: 1px solid var(--primary-hover);
+  box-shadow: var(--shadow-card);
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  z-index: 1001;
+  transition:
+    transform 0.2s,
+    background 0.2s,
+    top 0.3s ease;
+}
+
+.btn-refresh-page:hover {
+  background: var(--primary-hover);
+}
+
+.export-sticky-bar.collapsed .btn-refresh-page {
+  top: -96px;
+  pointer-events: auto;
+}
+
 .export-sticky-bar.collapsed .export-extra-options {
   display: none !important;
 }
