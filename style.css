@@ -176,7 +176,8 @@ h6 {
 
 body.is-ios .header-button-stack {
   flex-direction: column;
-  gap: 4px;
+  gap: 8px;
+  align-items: flex-end;
 }
 
 .user-status {

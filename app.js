@@ -153,8 +153,15 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // Refresh Page logic for iOS
   const refreshBtn = document.getElementById("refreshPage");
+  const refreshBtnHeader = document.getElementById("refreshPageHeader");
+  const iosDetected = isIOS();
+
+  if (iosDetected) {
+    document.body.classList.add("is-ios");
+  }
+
   if (refreshBtn) {
-    if (isIOS()) {
+    if (iosDetected) {
       refreshBtn.style.display = "flex";
     }
     refreshBtn.addEventListener("click", () => {
@@ -162,11 +169,9 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
-  const refreshBtnHeader = document.getElementById("refreshPageHeader");
   if (refreshBtnHeader) {
-    if (isIOS()) {
+    if (iosDetected) {
       refreshBtnHeader.style.display = "flex";
-      document.body.classList.add("is-ios");
     }
     refreshBtnHeader.addEventListener("click", () => {
       window.location.reload();
@@ -306,17 +311,12 @@ function todayStr() {
 }
 
 function isIOS() {
+  const ua = navigator.userAgent || navigator.vendor || window.opera;
   return (
-    [
-      "iPad Simulator",
-      "iPhone Simulator",
-      "iPod Simulator",
-      "iPad",
-      "iPhone",
-      "iPod",
-    ].includes(navigator.platform) ||
-    // iPad on iOS 13 detection
-    (navigator.userAgent.includes("Mac") && "ontouchend" in document)
+    /iPad|iPhone|iPod/.test(ua) ||
+    // iPad on iOS 13+ detection
+    (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1) ||
+    (ua.includes("Mac") && "ontouchend" in document)
   );
 }
 
